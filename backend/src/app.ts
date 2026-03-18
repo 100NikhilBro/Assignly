@@ -2,7 +2,6 @@ import { Request,Response,Application } from "express";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-
 import morgan from 'morgan';
 
 const app:Application = express();

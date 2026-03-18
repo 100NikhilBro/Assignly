@@ -1,12 +1,20 @@
 import app from "./app";
-import dotenv from 'dotenv';
+import { dbConnect } from "./config/db";
+import { env } from "./config/env";
 
-dotenv.config();
+const PORT = env.PORT;
 
+const startServer = async () => {
+  try {
+    
+    await dbConnect();
 
-const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Server failed to start", error);
+  }
+};
 
-
-app.listen(PORT,()=>{
-    console.log("Server started at PORT",PORT);
-})
+startServer();
