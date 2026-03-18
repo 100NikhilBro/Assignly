@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import * as assignmentService from "./assignement.service";
 import { cleanText } from "../../utils/sanitize";
-
 import { assignmentQueue } from "../../queue/assignment.queue";
 
 export const createAssignmentController = async (req: Request, res: Response) => {
@@ -22,17 +21,37 @@ export const createAssignmentController = async (req: Request, res: Response) =>
       concepts: Array.isArray(data.concepts)
         ? data.concepts.map((c: string) => cleanText(c))
         : [],
+      status: "pending",
     };
 
     const assignment = await assignmentService.createAssignment(sanitizedData);
 
-    await assignmentQueue.add("generate-paper",{
-        assignmentId:assignment._id
-    })
+    // Queue job
+    try {
+      await assignmentQueue.add(
+        "generate-paper",
+        { assignmentId: assignment._id },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 2000, 
+          },
+          removeOnComplete: true,
+          removeOnFail: false,
+        }
+      );
+    } catch (err) {
+      console.error("Queue add failed:", err);
+    }
 
     return res.status(201).json({
       success: true,
-      data: assignment,
+      message: "Assignment created. Paper is being generated.",
+      data: {
+        id: assignment._id,
+        status: assignment.status,
+      },
     });
 
   } catch (error) {
@@ -44,8 +63,6 @@ export const createAssignmentController = async (req: Request, res: Response) =>
     });
   }
 };
-
-
 
 export const getAssignmentController = async (req: Request, res: Response) => {
   try {
