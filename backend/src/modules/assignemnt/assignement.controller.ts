@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import * as assignmentService from "./assignement.service";
 import { cleanText } from "../../utils/sanitize";
 
+import { assignmentQueue } from "../../queue/assignment.queue";
+
 export const createAssignmentController = async (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -23,6 +25,10 @@ export const createAssignmentController = async (req: Request, res: Response) =>
     };
 
     const assignment = await assignmentService.createAssignment(sanitizedData);
+
+    await assignmentQueue.add("generate-paper",{
+        assignmentId:assignment._id
+    })
 
     return res.status(201).json({
       success: true,
