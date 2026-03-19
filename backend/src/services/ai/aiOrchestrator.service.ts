@@ -1,32 +1,171 @@
+
+
+// import { generateWithGemini } from "./gemini.service";
+// import { generateWithGroq } from "./groq.service";
+
+// const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// const safeCall = async (fn: () => Promise<string>, label: string) => {
+//   try {
+//     const res = await fn();
+
+//     console.log(`\n🧠 ${label} RAW RESPONSE:\n`, res?.slice(0, 500));
+
+//     if (!res || res.length < 20) {
+//       throw new Error("Weak response");
+//     }
+
+//     return res;
+//   } catch (err: any) {
+//     console.log(`❌ ${label} FAILED:`, err.message);
+//     throw err;
+//   }
+// };
+
+// export const generateWithAI = async (prompt: string): Promise<string> => {
+//   const groqPrompt =
+//     prompt +
+//     `
+
+// CRITICAL:
+// - Output MUST start with { and end with }
+// - Return ONLY JSON
+// - Each question MUST use key "text"
+// - DO NOT use "question"
+// `;
+
+//   // 🚀 GEMINI (skip if quota error)
+//   try {
+//     console.log("⚡ Trying GEMINI...");
+//     return await safeCall(
+//       () => generateWithGemini(prompt),
+//       "GEMINI"
+//     );
+//   } catch (err: any) {
+//     if (err.message?.includes("429")) {
+//       console.log("⛔ Gemini quota exceeded → skipping...");
+//     }
+//   }
+
+//   // 🚀 GROQ
+//   try {
+//     console.log("⚡ Trying GROQ...");
+//     return await safeCall(
+//       () => generateWithGroq(groqPrompt),
+//       "GROQ"
+//     );
+//   } catch (err: any) {
+//     console.log("❌ GROQ also failed");
+//     throw new Error("All AI providers failed");
+//   }
+// };
+
+
+
+
+
+
 import { generateWithGemini } from "./gemini.service";
 import { generateWithGroq } from "./groq.service";
 
-export const generateWithAI = async (prompt: string): Promise<string> => {
-  const errors: string[] = [];
-  
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// 🔥 OPTIONAL EMIT TYPE
+type EmitFn = (payload: any) => void;
+
+const safeCall = async (
+  fn: () => Promise<string>,
+  label: string,
+  emit?: EmitFn
+) => {
   try {
-    console.log(" Trying Gemini...");
-    const result = await generateWithGemini(prompt);
-    if (result && result.length > 0) {
-      return result;
+    const res = await fn();
+
+    console.log(`\n🧠 ${label} RAW RESPONSE:\n`, res?.slice(0, 500));
+
+    if (!res || res.length < 20) {
+      throw new Error("Weak response");
     }
-    throw new Error("Empty response from Gemini");
+
+    return res;
   } catch (err: any) {
-    console.log(" Gemini failed:", err.message);
-    errors.push(`Gemini: ${err.message}`);
+    console.log(`❌ ${label} FAILED:`, err.message);
+
+    // 🔥 EMIT FAIL EVENT (OPTIONAL)
+    emit?.({
+      status: "provider_failed",
+      provider: label,
+      message: err.message,
+    });
+
+    throw err;
+  }
+};
+
+export const generateWithAI = async (
+  prompt: string,
+  emit?: EmitFn // 🔥 ADD THIS (OPTIONAL)
+): Promise<string> => {
+  const groqPrompt =
+    prompt +
+    `
+
+CRITICAL:
+- Output MUST start with { and end with }
+- Return ONLY JSON
+- Each question MUST use key "text"
+- DO NOT use "question"
+`;
+
+  // 🚀 GEMINI
+  try {
+    console.log("⚡ Trying GEMINI...");
+
+    emit?.({
+      status: "ai_generating",
+      provider: "gemini",
+    });
+
+    return await safeCall(
+      () => generateWithGemini(prompt),
+      "GEMINI",
+      emit
+    );
+  } catch (err: any) {
+    if (err.message?.includes("429")) {
+      console.log("⛔ Gemini quota exceeded → skipping...");
+
+      // 🔥 EMIT SWITCH EVENT
+      emit?.({
+        status: "switching_provider",
+        from: "gemini",
+        to: "groq",
+      });
+    }
   }
 
+  // 🚀 GROQ
   try {
-    console.log("Trying Groq...");
-    const result = await generateWithGroq(prompt);
-    if (result && result.length > 0) {
-      return result;
-    }
-    throw new Error("Empty response from Groq");
-  } catch (err: any) {
-    console.log(" Groq also failed:", err.message);
-    errors.push(`Groq: ${err.message}`);
-  }
+    console.log("⚡ Trying GROQ...");
 
-  throw new Error(`All AI providers failed: ${errors.join(" | ")}`);
+    emit?.({
+      status: "ai_generating",
+      provider: "groq",
+    });
+
+    return await safeCall(
+      () => generateWithGroq(groqPrompt),
+      "GROQ",
+      emit
+    );
+  } catch (err: any) {
+    console.log("❌ GROQ also failed");
+
+    emit?.({
+      status: "failed",
+      message: "All AI providers failed",
+    });
+
+    throw new Error("All AI providers failed");
+  }
 };

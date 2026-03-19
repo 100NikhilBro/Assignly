@@ -1,36 +1,126 @@
+// import mongoose, { Schema } from "mongoose";
+
+// const assignmentSchema = new Schema(
+//   {
+//     // ─────────────────────────────
+//     // 👨‍🏫 TEACHER INPUT
+//     // ─────────────────────────────
+//     schoolName: { type: String, default: "School Name" },
+
+//     class: { type: String, required: true },
+//     subject: { type: String, required: true },
+//     topic: { type: String, required: true },
+
+//     totalMarks: { type: Number, required: true },
+//     timeAllowed: { type: String, default: "45 minutes" },
+
+//     dueDate: { type: Date },
+
+//     instructions: {
+//       type: String,
+//       default: "Attempt all questions",
+//     },
+
+//     concepts: {
+//       type: [String],
+//       default: [],
+//     },
+
+//     // 🎯 LIGHT CONTROL (AI-FRIENDLY)
+//     difficultyLevel: {
+//       type: String,
+//       enum: ["easy", "balanced", "tough"],
+//       default: "balanced",
+//     },
+
+//     questionTypes: {
+//       type: [String],
+//       default: ["short", "long"],
+//     },
+
+//     includeHints: { type: Boolean, default: false },
+//     includeAnswers: { type: Boolean, default: false },
+
+//     ensurePassing: { type: Boolean, default: true },
+
+//     // ─────────────────────────────
+//     // 🔄 STATUS
+//     // ─────────────────────────────
+//     status: {
+//       type: String,
+//       enum: ["pending", "processing", "completed", "failed"],
+//       default: "pending",
+//     },
+
+//     errorMessage: { type: String, default: null },
+
+//     // ─────────────────────────────
+//     // 🤖 AI OUTPUT
+//     // ─────────────────────────────
+//     paper: {
+//       studentInfo: {
+//         name: { type: String, default: "" },
+//         rollNumber: { type: String, default: "" },
+//         section: { type: String, default: "" },
+//         class: { type: String, default: "" },
+//         subject: { type: String, default: "" },
+//         date: { type: String, default: "" },
+//       },
+
+//       instructions: {
+//         type: String,
+//         default: "",
+//       },
+
+//       sections: [
+//         {
+//           title: String,       // Section A
+//           subTitle: String,    // Short Answer
+//           instruction: String, // Attempt all / any
+
+//           questions: [
+//             {
+//               number: Number,
+//               text: String,
+//               type: String,        // short / long / mcq
+//               difficulty: String,  // optional
+//               marks: Number,
+//               hint: String,        // optional
+//             },
+//           ],
+//         },
+//       ],
+
+//       answerKey: [
+//         {
+//           questionNumber: Number,
+//           answer: String,
+//         },
+//       ],
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+// export const Assignment = mongoose.model("Assignment", assignmentSchema);
+
+
+
 import mongoose, { Schema } from "mongoose";
 import { IAssignment } from "../../types/assignment.types";
 
 const assignmentSchema = new Schema<IAssignment>(
   {
-    topic: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    schoolName: { type: String, default: "School Name" },
 
-    totalQuestions: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
+    class: { type: String, required: true },
+    subject: { type: String, required: true },
+    topic: { type: String, required: true },
 
-    difficulty: {
-      easy: { type: Number, default: 0 },
-      medium: { type: Number, default: 0 },
-      hard: { type: Number, default: 0 },
-    },
+    totalMarks: { type: Number, required: true },
+    timeAllowed: { type: String, default: "45 minutes" },
 
-    marksPerQuestion: {
-      easy: { type: Number, default: 2 },
-      medium: { type: Number, default: 5 },
-      hard: { type: Number, default: 8 },
-    },
-
-    questionTypes: {
-      type: [String],
-      default: [],
-    },
+    dueDate: { type: Date },
 
     instructions: {
       type: String,
@@ -42,28 +132,28 @@ const assignmentSchema = new Schema<IAssignment>(
       default: [],
     },
 
-    blooms: {
-      remember: { type: Number, default: 0 },
-      understand: { type: Number, default: 0 },
-      apply: { type: Number, default: 0 },
-      analyze: { type: Number, default: 0 },
+    difficultyLevel: {
+      type: String,
+      enum: ["easy", "balanced", "tough"],
+      default: "balanced",
     },
 
-    ensurePassing: {
-      type: Boolean,
-      default: false,
+    questionTypes: {
+      type: [String],
+      default: ["short", "long"],
     },
 
-    includeHints: {
-      type: Boolean,
-      default: false,
-    },
+    includeHints: { type: Boolean, default: false },
+    includeAnswers: { type: Boolean, default: false },
+    ensurePassing: { type: Boolean, default: true },
 
     status: {
       type: String,
       enum: ["pending", "processing", "completed", "failed"],
       default: "pending",
     },
+
+    errorMessage: { type: String, default: null },
 
     paper: {
       studentInfo: {
@@ -80,15 +170,37 @@ const assignmentSchema = new Schema<IAssignment>(
         default: "",
       },
 
-      sections: {
-        type: [Schema.Types.Mixed],
-        default: [],
-      },
+      sections: [
+        {
+          title: { type: String, required: true },
+          subTitle: { type: String, default: "" },
+          instruction: { type: String, required: true },
+
+          questions: [
+            {
+              number: { type: Number, required: true },
+              text: { type: String, required: true },
+              type: { type: String, required: true },
+              difficulty: { type: String },
+              marks: { type: Number, required: true },
+              hint: { type: String },
+            },
+          ],
+        },
+      ],
+
+      answerKey: [
+        {
+          questionNumber: { type: Number, required: true },
+          answer: { type: String, required: true },
+        },
+      ],
     },
   },
   { timestamps: true }
 );
 
+// 🔥 THIS IS IMPORTANT
 export const Assignment = mongoose.model<IAssignment>(
   "Assignment",
   assignmentSchema
