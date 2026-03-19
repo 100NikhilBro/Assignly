@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 export const createAssignmentSchema = z.object({
@@ -10,6 +11,21 @@ export const createAssignmentSchema = z.object({
     medium: z.number().min(0),
     hard: z.number().min(0),
   }),
+
+
+  marksPerQuestion: z
+    .object({
+      easy: z.number().min(1),
+      medium: z.number().min(1),
+      hard: z.number().min(1),
+    })
+    .optional(),
+
+
+  questionTypes: z.array(z.string()).optional(),
+
+
+  instructions: z.string().optional(),
 
   concepts: z.array(z.string()).optional(),
 

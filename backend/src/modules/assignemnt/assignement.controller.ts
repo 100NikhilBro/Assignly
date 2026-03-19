@@ -4,6 +4,11 @@ import * as assignmentService from "./assignement.service";
 import { cleanText } from "../../utils/sanitize";
 import { assignmentQueue } from "../../queue/assignment.queue";
 
+import { User } from "../user/user.model";
+import { handleGuestCredits } from "../../utils/credits";
+
+
+
 export const createAssignmentController = async (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -15,18 +20,59 @@ export const createAssignmentController = async (req: Request, res: Response) =>
       });
     }
 
+    const user = (req as any).user;
+
+    if (!user) {
+      try {
+        handleGuestCredits();
+      } catch {
+        return res.status(403).json({
+          success: false,
+          message: "Guest credits exhausted. Please login.",
+        });
+      }
+    } else {
+      const dbUser = await User.findById(user.id);
+
+      if (!dbUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      if (dbUser.credits <= 0) {
+        return res.status(403).json({
+          success: false,
+          message: "Credits exhausted. Please upgrade.",
+        });
+      }
+
+      dbUser.credits -= 1;
+      await dbUser.save();
+    }
+
     const sanitizedData = {
       ...data,
       topic: cleanText(data.topic),
+
       concepts: Array.isArray(data.concepts)
         ? data.concepts.map((c: string) => cleanText(c))
         : [],
+
+      instructions: data.instructions
+        ? cleanText(data.instructions)
+        : undefined,
+
+      questionTypes: Array.isArray(data.questionTypes)
+        ? data.questionTypes.map((q: string) => cleanText(q))
+        : [],
+
       status: "pending",
     };
 
     const assignment = await assignmentService.createAssignment(sanitizedData);
 
-    // Queue job
     try {
       await assignmentQueue.add(
         "generate-paper",
@@ -35,7 +81,7 @@ export const createAssignmentController = async (req: Request, res: Response) =>
           attempts: 3,
           backoff: {
             type: "exponential",
-            delay: 2000, 
+            delay: 2000,
           },
           removeOnComplete: true,
           removeOnFail: false,
@@ -43,6 +89,11 @@ export const createAssignmentController = async (req: Request, res: Response) =>
       );
     } catch (err) {
       console.error("Queue add failed:", err);
+
+      await assignmentService.updateAssignmentStatus(
+        assignment._id.toString(),
+        "failed"
+      );
     }
 
     return res.status(201).json({
@@ -63,6 +114,7 @@ export const createAssignmentController = async (req: Request, res: Response) =>
     });
   }
 };
+
 
 export const getAssignmentController = async (req: Request, res: Response) => {
   try {

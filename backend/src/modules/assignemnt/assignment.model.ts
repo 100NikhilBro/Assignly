@@ -21,6 +21,22 @@ const assignmentSchema = new Schema<IAssignment>(
       hard: { type: Number, default: 0 },
     },
 
+    marksPerQuestion: {
+      easy: { type: Number, default: 2 },
+      medium: { type: Number, default: 5 },
+      hard: { type: Number, default: 8 },
+    },
+
+    questionTypes: {
+      type: [String],
+      default: [],
+    },
+
+    instructions: {
+      type: String,
+      default: "Attempt all questions",
+    },
+
     concepts: {
       type: [String],
       default: [],
@@ -50,6 +66,20 @@ const assignmentSchema = new Schema<IAssignment>(
     },
 
     paper: {
+      studentInfo: {
+        name: { type: String, default: "" },
+        rollNumber: { type: String, default: "" },
+        section: { type: String, default: "" },
+        class: { type: String, default: "" },
+        subject: { type: String, default: "" },
+        date: { type: String, default: "" },
+      },
+
+      instructions: {
+        type: String,
+        default: "",
+      },
+
       sections: {
         type: [Schema.Types.Mixed],
         default: [],
