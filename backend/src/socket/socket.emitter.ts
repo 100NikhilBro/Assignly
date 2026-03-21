@@ -13,9 +13,9 @@ export const emitAssignmentUpdate = (
     });
 
     // optional debug
-    console.log("📡 Emit:", assignmentId, payload.status);
+    console.log("Emit:", assignmentId, payload.status);
   } catch (err: any) {
     // NEVER break worker because of socket
-    console.error("⚠️ Socket emit failed:", err.message);
+    console.error(" Socket emit failed:", err.message);
   }
 };
