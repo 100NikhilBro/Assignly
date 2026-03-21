@@ -60,7 +60,6 @@ export const validateAIOutput = (parsed: any): boolean => {
 
     console.log(`Valid questions count: ${validCount}`);
 
-   =
     if (validCount < 3) {
       console.log(" Too few valid questions");
       return false;
