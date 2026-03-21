@@ -3,7 +3,6 @@ import { generateWithGroq } from "./groq.service";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// 🔥 OPTIONAL EMIT TYPE
 type EmitFn = (payload: any) => void;
 
 const safeCall = async (
@@ -14,7 +13,7 @@ const safeCall = async (
   try {
     const res = await fn();
 
-    console.log(`\n🧠 ${label} RAW RESPONSE:\n`, res?.slice(0, 500));
+    console.log(`\n ${label} RAW RESPONSE:\n`, res?.slice(0, 500));
 
     if (!res || res.length < 20) {
       throw new Error("Weak response");
@@ -22,9 +21,9 @@ const safeCall = async (
 
     return res;
   } catch (err: any) {
-    console.log(`❌ ${label} FAILED:`, err.message);
+    console.log(` ${label} FAILED:`, err.message);
 
-    // 🔥 EMIT FAIL EVENT (OPTIONAL)
+ 
     emit?.({
       status: "provider_failed",
       provider: label,
@@ -37,7 +36,7 @@ const safeCall = async (
 
 export const generateWithAI = async (
   prompt: string,
-  emit?: EmitFn // 🔥 ADD THIS (OPTIONAL)
+  emit?: EmitFn 
 ): Promise<string> => {
   const groqPrompt =
     prompt +
@@ -50,9 +49,9 @@ CRITICAL:
 - DO NOT use "question"
 `;
 
-  // 🚀 GEMINI
+
   try {
-    console.log("⚡ Trying GEMINI...");
+    console.log("Trying GEMINI...");
 
     emit?.({
       status: "ai_generating",
@@ -66,9 +65,8 @@ CRITICAL:
     );
   } catch (err: any) {
     if (err.message?.includes("429")) {
-      console.log("⛔ Gemini quota exceeded → skipping...");
+      console.log("Gemini quota exceeded → skipping...");
 
-      // 🔥 EMIT SWITCH EVENT
       emit?.({
         status: "switching_provider",
         from: "gemini",
@@ -77,7 +75,7 @@ CRITICAL:
     }
   }
 
-  // 🚀 GROQ
+  
   try {
     console.log("⚡ Trying GROQ...");
 
@@ -92,7 +90,7 @@ CRITICAL:
       emit
     );
   } catch (err: any) {
-    console.log("❌ GROQ also failed");
+    console.log("GROQ also failed");
 
     emit?.({
       status: "failed",
