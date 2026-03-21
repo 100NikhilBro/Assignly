@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 export const createAssignmentSchema = z.object({
-  // 👨‍🏫 BASIC DETAILS
+
   schoolName: z.string().optional(),
 
   class: z.string().min(1, "Class is required"),
@@ -14,11 +14,10 @@ export const createAssignmentSchema = z.object({
   timeAllowed: z.string().optional(),
   dueDate: z.string().datetime().optional(),
 
-  // 📝 INSTRUCTIONS + CONCEPTS
+
   instructions: z.string().optional(),
   concepts: z.array(z.string()).optional(),
 
-  // 🎯 AI CONTROL (SIMPLE)
   difficultyLevel: z
     .enum(["easy", "balanced", "tough"])
     .optional(),
