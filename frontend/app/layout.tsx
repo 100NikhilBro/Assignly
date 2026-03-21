@@ -1,28 +1,3 @@
-// "use client";
-
-// import "./globals.css";
-// import { GoogleOAuthProvider } from "@react-oauth/google";
-// import { useAuth } from "./hooks/useAuth";
-// import { Toaster } from "react-hot-toast";
-
-// export default function RootLayout({ children }: any) {
-//   <Toaster position="top-right"></Toaster>
-//   useAuth();
-//   return (
-//     <html lang="en">
-//       <body>
-//         <GoogleOAuthProvider
-//           clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
-//         >
-//           {children}
-//         </GoogleOAuthProvider>
-//       </body>
-//     </html>
-//   );
-// }
-
-
-
 "use client";
 
 import "./globals.css";
