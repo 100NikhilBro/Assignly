@@ -14,7 +14,7 @@ export const generateToken = (payload: { id: string; email: string }) => {
   return token;
 };
 
-=
+
 export const verifyToken = (token: string) => {
   try {
     console.log("Verifying token...");
