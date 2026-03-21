@@ -48,7 +48,6 @@ const assignmentSchema = new Schema<IAssignment>(
 
     errorMessage: { type: String, default: null },
 
-    // ✅ ADD THESE FIELDS
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -107,7 +106,7 @@ const assignmentSchema = new Schema<IAssignment>(
   { timestamps: true }
 );
 
-// 🔥 Create indexes for faster queries
+// indexes for faster queries
 assignmentSchema.index({ userId: 1, createdAt: -1 });
 assignmentSchema.index({ guestSessionId: 1, createdAt: -1 });
 
