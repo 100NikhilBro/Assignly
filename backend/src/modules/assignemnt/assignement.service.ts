@@ -1,7 +1,6 @@
 import { Assignment } from "./assignment.model";
 import { IAssignment } from "../../types/assignment.types";
 
-// ✅ CREATE
 export const createAssignment = async (
   data: Partial<IAssignment>
 ): Promise<IAssignment> => {
@@ -9,14 +8,14 @@ export const createAssignment = async (
   return doc.toObject() as IAssignment;
 };
 
-// ✅ GET (LEAN = FAST ⚡)
+
 export const getAssignmentById = async (
   id: string
 ): Promise<IAssignment | null> => {
   return await Assignment.findById(id).lean<IAssignment>();
 };
 
-// ✅ UPDATE STATUS
+
 export const updateAssignmentStatus = async (
   id: string,
   status: IAssignment["status"]
@@ -28,7 +27,7 @@ export const updateAssignmentStatus = async (
   );
 };
 
-// ✅ UPDATE PAPER (AND MARK COMPLETED)
+
 export const updateAssignmentPaper = async (
   id: string,
   paper: IAssignment["paper"]
