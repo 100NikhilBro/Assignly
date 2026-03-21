@@ -15,4 +15,9 @@ import authRoutes from "../modules/auth/auth.route";
 
 router.use("/auth", authRoutes);
 
+
+import { getGuestCreditsController } from "../modules/assignemnt/assignement.controller";
+
+router.get("/guest/credits", getGuestCreditsController);
+
 export default router;
