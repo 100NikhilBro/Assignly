@@ -137,15 +137,12 @@
 
 
 
-
-
-
 import { Redis } from "@upstash/redis";
 import { env } from "./env";
 
 let redisConnection: any = null;
 
-// Try to connect to Redis
+// Initialize Redis connection
 const initRedis = async () => {
   try {
     if (!env.REDIS_URL) {
@@ -184,8 +181,19 @@ const initRedis = async () => {
   }
 };
 
-// Initialize Redis connection
-const connection = await initRedis();
-export const redisConnection = connection;
+// Initialize and export
+const initialize = async () => {
+  const connection = await initRedis();
+  return connection;
+};
 
+// Export as promise for use
+export const getRedisConnection = async () => {
+  if (redisConnection === null) {
+    redisConnection = await initialize();
+  }
+  return redisConnection;
+};
+
+// For backward compatibility, export a placeholder
 export { redisConnection };
