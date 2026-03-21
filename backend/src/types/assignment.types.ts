@@ -1,7 +1,7 @@
 import { Document, Types } from "mongoose";
 
 export interface IAssignment extends Document {
-  // 👨‍🏫 INPUT
+
   schoolName?: string;
 
   class: string;
@@ -23,15 +23,14 @@ export interface IAssignment extends Document {
   includeAnswers?: boolean;
   ensurePassing?: boolean;
 
-  // 🔄 STATUS
   status: "pending" | "processing" | "completed" | "failed";
   errorMessage?: string;
 
-  // ✅ ADD THESE - For tracking users
+
   userId?: Types.ObjectId | null;
   guestSessionId?: string | null;
 
-  // 🤖 OUTPUT
+
   paper: {
     studentInfo: {
       name: string;
