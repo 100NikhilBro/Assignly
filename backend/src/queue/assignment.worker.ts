@@ -1,5 +1,346 @@
+// // // // // import { Worker, Job } from "bullmq";
+// // // // // import { env } from "../config/env";
+// // // // // import { Assignment } from "../modules/assignemnt/assignment.model";
+// // // // // import { generateWithAI } from "../services/ai/aiOrchestrator.service";
+// // // // // import { parseAIResponse } from "../utils/aiParser";
+// // // // // import { validateAIOutput } from "../utils/aiValidator";
+// // // // // import { buildPrompt } from "../services/ai/promptBuilder";
+// // // // // import { emitAssignmentUpdate } from "../socket/socket.emitter";
+
+// // // // // /* ---------------- CONFIG ENGINE ---------------- */
+
+// // // // // const generateDynamicConfig = (totalMarks: number) => {
+// // // // //   console.log("⚙️ Generating RATIO config for:", totalMarks);
+
+// // // // //   // 🔥 UPDATED MARKS
+// // // // //   const marks = { easy: 2, medium: 3, hard: 5 };
+
+// // // // //   const weights = { easy: 1, medium: 2.5, hard: 1.5 };
+// // // // //   const totalWeight = 5;
+
+// // // // //   const targetMarks = {
+// // // // //     easy: (weights.easy / totalWeight) * totalMarks,
+// // // // //     medium: (weights.medium / totalWeight) * totalMarks,
+// // // // //     hard: (weights.hard / totalWeight) * totalMarks,
+// // // // //   };
+
+// // // // //   let base = {
+// // // // //     easy: Math.max(2, Math.floor(targetMarks.easy / marks.easy)),
+// // // // //     medium: Math.max(2, Math.floor(targetMarks.medium / marks.medium)),
+// // // // //     hard: Math.max(2, Math.floor(targetMarks.hard / marks.hard)),
+// // // // //   };
+
+// // // // //   let best = base;
+// // // // //   let bestDiff = Infinity;
+
+// // // // //   for (let de = -2; de <= 2; de++) {
+// // // // //     for (let dm = -2; dm <= 2; dm++) {
+// // // // //       for (let dh = -2; dh <= 2; dh++) {
+// // // // //         const e = Math.max(2, base.easy + de);
+// // // // //         const m = Math.max(2, base.medium + dm);
+// // // // //         const h = Math.max(2, base.hard + dh);
+
+// // // // //         const total = e * marks.easy + m * marks.medium + h * marks.hard;
+// // // // //         const diff = Math.abs(total - totalMarks);
+
+// // // // //         if (diff < bestDiff) {
+// // // // //           bestDiff = diff;
+// // // // //           best = { easy: e, medium: m, hard: h };
+// // // // //         }
+// // // // //       }
+// // // // //     }
+// // // // //   }
+
+// // // // //   console.log("✅ Distribution:", best);
+
+// // // // //   return {
+// // // // //     distribution: best,
+// // // // //     marks,
+// // // // //     tolerance: 2,
+// // // // //   };
+// // // // // };
+
+// // // // // const resolveConfig = (assignment: any) => {
+// // // // //   if (assignment.difficulty && assignment.marksPerQuestion) {
+// // // // //     console.log("⚡ Using CUSTOM config");
+// // // // //     return {
+// // // // //       distribution: assignment.difficulty,
+// // // // //       marks: assignment.marksPerQuestion,
+// // // // //       tolerance: 2,
+// // // // //     };
+// // // // //   }
+
+// // // // //   return generateDynamicConfig(assignment.totalMarks);
+// // // // // };
+
+// // // // // /* ---------------- NORMALIZER ---------------- */
+
+// // // // // const normalizePaper = (paper: any, config: any, assignment: any) => {
+// // // // //   console.log("🔄 Normalizing AI response...");
+
+// // // // //   const difficulties = ["easy", "medium", "hard"];
+// // // // //   const seen = new Set<string>();
+
+// // // // //   return {
+// // // // //     studentInfo: {
+// // // // //       name: "",
+// // // // //       rollNumber: "",
+// // // // //       section: "",
+// // // // //       class: assignment.class,
+// // // // //       subject: assignment.subject,
+// // // // //       date: "",
+// // // // //     },
+// // // // //     instructions: assignment.instructions,
+
+// // // // //     sections: difficulties.map((difficulty, idx) => {
+// // // // //       const target = config.distribution[difficulty];
+
+// // // // //       let questions =
+// // // // //         paper?.sections?.[idx]?.questions?.map((q: any) => {
+// // // // //           let text =
+// // // // //             typeof q === "string"
+// // // // //               ? q.trim()
+// // // // //               : q?.text?.trim() || q?.question?.trim();
+
+// // // // //           if (!text || text.length < 20) return null;
+
+// // // // //           const key = text.toLowerCase();
+
+// // // // //           if (seen.has(key)) {
+// // // // //             text += " (Explain with different example)";
+// // // // //           }
+
+// // // // //           seen.add(key);
+
+// // // // //           return {
+// // // // //             text,
+// // // // //             difficulty,
+// // // // //             marks: config.marks[difficulty], // 🔥 auto uses 2/3/5
+// // // // //             type: assignment.questionTypes?.[0] || "theory",
+// // // // //             hint:
+// // // // //               difficulty === "hard"
+// // // // //                 ? q?.hint || `Think about ${assignment.topic} in real world`
+// // // // //                 : undefined,
+// // // // //           };
+// // // // //         }) || [];
+
+// // // // //       questions = questions.filter(Boolean);
+
+// // // // //       while (questions.length < target) {
+// // // // //         questions.push({
+// // // // //           text: `Explain ${assignment.topic} with example.`,
+// // // // //           difficulty,
+// // // // //           marks: config.marks[difficulty],
+// // // // //           type: "theory",
+// // // // //         });
+// // // // //       }
+
+// // // // //       questions = questions.slice(0, target);
+
+// // // // //       questions.forEach((q: any, i: number) => (q.number = i + 1));
+
+// // // // //       return {
+// // // // //         title: `Section ${String.fromCharCode(65 + idx)}`,
+// // // // //         instruction:
+// // // // //           idx === 0 ? "Attempt all questions" : "Attempt any questions",
+// // // // //         questions,
+// // // // //       };
+// // // // //     }),
+// // // // //   };
+// // // // // };
+
+// // // // // /* ---------------- MARKS CHECK ---------------- */
+
+// // // // // const calculateTotalMarks = (paper: any) => {
+// // // // //   return paper.sections.reduce(
+// // // // //     (sum: number, sec: any) =>
+// // // // //       sum +
+// // // // //       sec.questions.reduce((s: number, q: any) => s + q.marks, 0),
+// // // // //     0
+// // // // //   );
+// // // // // };
+
+// // // // // /* ---------------- AI FLOW ---------------- */
+
+// // // // // const generateValidAIResponse = async (
+// // // // //   assignment: any,
+// // // // //   assignmentId: string
+// // // // // ) => {
+// // // // //   const config = resolveConfig(assignment);
+
+// // // // //   let attempts = 0;
+// // // // //   const MAX_RETRIES = 3;
+
+// // // // //   while (attempts < MAX_RETRIES) {
+// // // // //     try {
+// // // // //       console.log(`🧠 AI Attempt ${attempts + 1}`);
+
+// // // // //       emitAssignmentUpdate(assignmentId, {
+// // // // //         status: "ai_attempt",
+// // // // //         attempt: attempts + 1,
+// // // // //       });
+
+// // // // //       const prompt = buildPrompt(assignment, config);
+
+// // // // //       const raw = await generateWithAI(prompt, (payload: any) => {
+// // // // //         emitAssignmentUpdate(assignmentId, payload);
+// // // // //       });
+
+// // // // //       console.log("🧾 RAW:", raw?.slice(0, 150));
+
+// // // // //       const parsed = parseAIResponse(raw);
+// // // // //       const normalized = normalizePaper(parsed, config, assignment);
+
+// // // // //       if (!validateAIOutput(normalized)) {
+// // // // //         throw new Error("Validation failed");
+// // // // //       }
+
+// // // // //       const total = calculateTotalMarks(normalized);
+// // // // //       const diff = Math.abs(total - assignment.totalMarks);
+
+// // // // //       console.log("📊 Marks:", total, "| Expected:", assignment.totalMarks);
+
+// // // // //       if (diff <= config.tolerance) {
+// // // // //         console.log("✅ ACCEPTED WITHIN TOLERANCE");
+
+// // // // //         emitAssignmentUpdate(assignmentId, {
+// // // // //           status: "ai_success",
+// // // // //           marks: total,
+// // // // //         });
+
+// // // // //         return normalized;
+// // // // //       }
+
+// // // // //       emitAssignmentUpdate(assignmentId, {
+// // // // //         status: "retrying",
+// // // // //         reason: "marks_mismatch",
+// // // // //       });
+
+// // // // //       attempts++;
+// // // // //     } catch (err: any) {
+// // // // //       console.log("❌ AI attempt failed:", err.message);
+
+// // // // //       emitAssignmentUpdate(assignmentId, {
+// // // // //         status: "retrying",
+// // // // //         reason: err.message,
+// // // // //       });
+
+// // // // //       attempts++;
+// // // // //     }
+// // // // //   }
+
+// // // // //   console.log("🛟 All retries failed → fallback");
+
+// // // // //   emitAssignmentUpdate(assignmentId, {
+// // // // //     status: "fallback",
+// // // // //     message: "Using fallback paper",
+// // // // //   });
+
+// // // // //   return generateFallbackPaper(assignment, config);
+// // // // // };
+
+// // // // // /* ---------------- FALLBACK ---------------- */
+
+// // // // // const generateFallbackPaper = (assignment: any, config: any) => {
+// // // // //   console.log("🛟 Generating fallback paper...");
+
+// // // // //   return {
+// // // // //     studentInfo: {
+// // // // //       name: "",
+// // // // //       rollNumber: "",
+// // // // //       section: "",
+// // // // //       class: assignment.class,
+// // // // //       subject: assignment.subject,
+// // // // //       date: "",
+// // // // //     },
+// // // // //     instructions: assignment.instructions,
+// // // // //     sections: ["easy", "medium", "hard"].map((d, idx) => ({
+// // // // //       title: `Section ${String.fromCharCode(65 + idx)}`,
+// // // // //       instruction:
+// // // // //         idx === 0 ? "Attempt all questions" : "Attempt any questions",
+// // // // //       questions: Array.from(
+// // // // //         { length: config.distribution[d] },
+// // // // //         (_, i) => ({
+// // // // //           number: i + 1,
+// // // // //           text: `Explain ${assignment.topic} with example.`,
+// // // // //           difficulty: d,
+// // // // //           marks: config.marks[d],
+// // // // //           type: "theory",
+// // // // //         })
+// // // // //       ),
+// // // // //     })),
+// // // // //   };
+// // // // // };
+
+// // // // // /* ---------------- WORKER ---------------- */
+
+// // // // // export const assignmentWorker = new Worker(
+// // // // //   "assignmentQueue",
+// // // // //   async (job: Job) => {
+// // // // //     const { assignmentId } = job.data;
+
+// // // // //     if (!assignmentId) return;
+
+// // // // //     const start = Date.now();
+
+// // // // //     try {
+// // // // //       console.log("🚀 JOB START:", assignmentId);
+
+// // // // //       const assignment = await Assignment.findById(assignmentId);
+// // // // //       if (!assignment) throw new Error("Assignment not found");
+
+// // // // //       await Assignment.findByIdAndUpdate(assignmentId, {
+// // // // //         status: "processing",
+// // // // //       });
+
+// // // // //       emitAssignmentUpdate(assignmentId, { status: "processing" });
+
+// // // // //       const paper = await generateValidAIResponse(
+// // // // //         assignment,
+// // // // //         assignmentId
+// // // // //       );
+
+// // // // //       await Assignment.findByIdAndUpdate(assignmentId, {
+// // // // //         status: "completed",
+// // // // //         paper,
+// // // // //         processingTime: Date.now() - start,
+// // // // //       });
+
+// // // // //       emitAssignmentUpdate(assignmentId, {
+// // // // //         status: "completed",
+// // // // //         data: paper,
+// // // // //       });
+
+// // // // //       console.log("🎉 DONE in", Date.now() - start, "ms");
+// // // // //     } catch (err: any) {
+// // // // //       console.error("💥 ERROR:", err.message);
+
+// // // // //       await Assignment.findByIdAndUpdate(assignmentId, {
+// // // // //         status: "failed",
+// // // // //         errorMessage: err.message,
+// // // // //       });
+
+// // // // //       emitAssignmentUpdate(assignmentId, {
+// // // // //         status: "failed",
+// // // // //         error: err.message,
+// // // // //       });
+// // // // //     }
+// // // // //   },
+// // // // //   {
+// // // // //     connection: { url: env.REDIS_URL },
+// // // // //     concurrency: 5,
+// // // // //   }
+// // // // // );
+
+// // // // // console.log("🔥 FINAL INDUSTRY WORKER RUNNING...");
+
+
+
+
+
 // // // // import { Worker, Job } from "bullmq";
 // // // // import { env } from "../config/env";
+// // // // import { redisConnection } from "../config/redis";
 // // // // import { Assignment } from "../modules/assignemnt/assignment.model";
 // // // // import { generateWithAI } from "../services/ai/aiOrchestrator.service";
 // // // // import { parseAIResponse } from "../utils/aiParser";
@@ -12,7 +353,6 @@
 // // // // const generateDynamicConfig = (totalMarks: number) => {
 // // // //   console.log("⚙️ Generating RATIO config for:", totalMarks);
 
-// // // //   // 🔥 UPDATED MARKS
 // // // //   const marks = { easy: 2, medium: 3, hard: 5 };
 
 // // // //   const weights = { easy: 1, medium: 2.5, hard: 1.5 };
@@ -115,7 +455,7 @@
 // // // //           return {
 // // // //             text,
 // // // //             difficulty,
-// // // //             marks: config.marks[difficulty], // 🔥 auto uses 2/3/5
+// // // //             marks: config.marks[difficulty],
 // // // //             type: assignment.questionTypes?.[0] || "theory",
 // // // //             hint:
 // // // //               difficulty === "hard"
@@ -162,7 +502,7 @@
 
 // // // // /* ---------------- AI FLOW ---------------- */
 
-// // // // const generateValidAIResponse = async (
+// // // // export const generateValidAIResponse = async (
 // // // //   assignment: any,
 // // // //   assignmentId: string
 // // // // ) => {
@@ -274,7 +614,9 @@
 
 // // // // /* ---------------- WORKER ---------------- */
 
-// // // // export const assignmentWorker = new Worker(
+// // // // const isRedisAvailable = !!redisConnection;
+
+// // // // export const assignmentWorker = isRedisAvailable ? new Worker(
 // // // //   "assignmentQueue",
 // // // //   async (job: Job) => {
 // // // //     const { assignmentId } = job.data;
@@ -295,10 +637,7 @@
 
 // // // //       emitAssignmentUpdate(assignmentId, { status: "processing" });
 
-// // // //       const paper = await generateValidAIResponse(
-// // // //         assignment,
-// // // //         assignmentId
-// // // //       );
+// // // //       const paper = await generateValidAIResponse(assignment, assignmentId);
 
 // // // //       await Assignment.findByIdAndUpdate(assignmentId, {
 // // // //         status: "completed",
@@ -330,9 +669,14 @@
 // // // //     connection: { url: env.REDIS_URL },
 // // // //     concurrency: 5,
 // // // //   }
-// // // // );
+// // // // ) : null;
 
-// // // // console.log("🔥 FINAL INDUSTRY WORKER RUNNING...");
+// // // // if (isRedisAvailable) {
+// // // //   console.log("🔥 Worker running with Redis");
+// // // // } else {
+// // // //   console.log("⚠️ Worker disabled (Redis unavailable)");
+// // // // }
+
 
 
 
@@ -340,7 +684,6 @@
 
 // // // import { Worker, Job } from "bullmq";
 // // // import { env } from "../config/env";
-// // // import { redisConnection } from "../config/redis";
 // // // import { Assignment } from "../modules/assignemnt/assignment.model";
 // // // import { generateWithAI } from "../services/ai/aiOrchestrator.service";
 // // // import { parseAIResponse } from "../utils/aiParser";
@@ -354,7 +697,6 @@
 // // //   console.log("⚙️ Generating RATIO config for:", totalMarks);
 
 // // //   const marks = { easy: 2, medium: 3, hard: 5 };
-
 // // //   const weights = { easy: 1, medium: 2.5, hard: 1.5 };
 // // //   const totalWeight = 5;
 
@@ -379,10 +721,8 @@
 // // //         const e = Math.max(2, base.easy + de);
 // // //         const m = Math.max(2, base.medium + dm);
 // // //         const h = Math.max(2, base.hard + dh);
-
 // // //         const total = e * marks.easy + m * marks.medium + h * marks.hard;
 // // //         const diff = Math.abs(total - totalMarks);
-
 // // //         if (diff < bestDiff) {
 // // //           bestDiff = diff;
 // // //           best = { easy: e, medium: m, hard: h };
@@ -392,24 +732,10 @@
 // // //   }
 
 // // //   console.log("✅ Distribution:", best);
-
-// // //   return {
-// // //     distribution: best,
-// // //     marks,
-// // //     tolerance: 2,
-// // //   };
+// // //   return { distribution: best, marks, tolerance: 2 };
 // // // };
 
 // // // const resolveConfig = (assignment: any) => {
-// // //   if (assignment.difficulty && assignment.marksPerQuestion) {
-// // //     console.log("⚡ Using CUSTOM config");
-// // //     return {
-// // //       distribution: assignment.difficulty,
-// // //       marks: assignment.marksPerQuestion,
-// // //       tolerance: 2,
-// // //     };
-// // //   }
-
 // // //   return generateDynamicConfig(assignment.totalMarks);
 // // // };
 
@@ -423,66 +749,37 @@
 
 // // //   return {
 // // //     studentInfo: {
-// // //       name: "",
-// // //       rollNumber: "",
-// // //       section: "",
-// // //       class: assignment.class,
-// // //       subject: assignment.subject,
-// // //       date: "",
+// // //       name: "", rollNumber: "", section: "",
+// // //       class: assignment.class, subject: assignment.subject, date: "",
 // // //     },
 // // //     instructions: assignment.instructions,
 
 // // //     sections: difficulties.map((difficulty, idx) => {
 // // //       const target = config.distribution[difficulty];
 
-// // //       let questions =
-// // //         paper?.sections?.[idx]?.questions?.map((q: any) => {
-// // //           let text =
-// // //             typeof q === "string"
-// // //               ? q.trim()
-// // //               : q?.text?.trim() || q?.question?.trim();
-
-// // //           if (!text || text.length < 20) return null;
-
-// // //           const key = text.toLowerCase();
-
-// // //           if (seen.has(key)) {
-// // //             text += " (Explain with different example)";
-// // //           }
-
-// // //           seen.add(key);
-
-// // //           return {
-// // //             text,
-// // //             difficulty,
-// // //             marks: config.marks[difficulty],
-// // //             type: assignment.questionTypes?.[0] || "theory",
-// // //             hint:
-// // //               difficulty === "hard"
-// // //                 ? q?.hint || `Think about ${assignment.topic} in real world`
-// // //                 : undefined,
-// // //           };
-// // //         }) || [];
+// // //       let questions = paper?.sections?.[idx]?.questions?.map((q: any) => {
+// // //         let text = typeof q === "string" ? q.trim() : q?.text?.trim() || q?.question?.trim();
+// // //         if (!text || text.length < 20) return null;
+// // //         const key = text.toLowerCase();
+// // //         if (seen.has(key)) text += " (Explain with different example)";
+// // //         seen.add(key);
+// // //         return {
+// // //           text, difficulty, marks: config.marks[difficulty],
+// // //           type: assignment.questionTypes?.[0] || "theory",
+// // //           hint: difficulty === "hard" ? q?.hint || `Think about ${assignment.topic} in real world` : undefined,
+// // //         };
+// // //       }) || [];
 
 // // //       questions = questions.filter(Boolean);
-
 // // //       while (questions.length < target) {
-// // //         questions.push({
-// // //           text: `Explain ${assignment.topic} with example.`,
-// // //           difficulty,
-// // //           marks: config.marks[difficulty],
-// // //           type: "theory",
-// // //         });
+// // //         questions.push({ text: `Explain ${assignment.topic} with example.`, difficulty, marks: config.marks[difficulty], type: "theory" });
 // // //       }
-
 // // //       questions = questions.slice(0, target);
-
 // // //       questions.forEach((q: any, i: number) => (q.number = i + 1));
 
 // // //       return {
 // // //         title: `Section ${String.fromCharCode(65 + idx)}`,
-// // //         instruction:
-// // //           idx === 0 ? "Attempt all questions" : "Attempt any questions",
+// // //         instruction: idx === 0 ? "Attempt all questions" : "Attempt any questions",
 // // //         questions,
 // // //       };
 // // //     }),
@@ -492,48 +789,29 @@
 // // // /* ---------------- MARKS CHECK ---------------- */
 
 // // // const calculateTotalMarks = (paper: any) => {
-// // //   return paper.sections.reduce(
-// // //     (sum: number, sec: any) =>
-// // //       sum +
-// // //       sec.questions.reduce((s: number, q: any) => s + q.marks, 0),
-// // //     0
-// // //   );
+// // //   return paper.sections.reduce((sum: number, sec: any) =>
+// // //     sum + sec.questions.reduce((s: number, q: any) => s + q.marks, 0), 0);
 // // // };
 
 // // // /* ---------------- AI FLOW ---------------- */
 
-// // // export const generateValidAIResponse = async (
-// // //   assignment: any,
-// // //   assignmentId: string
-// // // ) => {
+// // // export const generateValidAIResponse = async (assignment: any, assignmentId: string) => {
 // // //   const config = resolveConfig(assignment);
-
 // // //   let attempts = 0;
 // // //   const MAX_RETRIES = 3;
 
 // // //   while (attempts < MAX_RETRIES) {
 // // //     try {
 // // //       console.log(`🧠 AI Attempt ${attempts + 1}`);
-
-// // //       emitAssignmentUpdate(assignmentId, {
-// // //         status: "ai_attempt",
-// // //         attempt: attempts + 1,
-// // //       });
+// // //       emitAssignmentUpdate(assignmentId, { status: "ai_attempt", attempt: attempts + 1 });
 
 // // //       const prompt = buildPrompt(assignment, config);
-
-// // //       const raw = await generateWithAI(prompt, (payload: any) => {
-// // //         emitAssignmentUpdate(assignmentId, payload);
-// // //       });
-
-// // //       console.log("🧾 RAW:", raw?.slice(0, 150));
+// // //       const raw = await generateWithAI(prompt, (payload: any) => emitAssignmentUpdate(assignmentId, payload));
 
 // // //       const parsed = parseAIResponse(raw);
 // // //       const normalized = normalizePaper(parsed, config, assignment);
 
-// // //       if (!validateAIOutput(normalized)) {
-// // //         throw new Error("Validation failed");
-// // //       }
+// // //       if (!validateAIOutput(normalized)) throw new Error("Validation failed");
 
 // // //       const total = calculateTotalMarks(normalized);
 // // //       const diff = Math.abs(total - assignment.totalMarks);
@@ -541,41 +819,21 @@
 // // //       console.log("📊 Marks:", total, "| Expected:", assignment.totalMarks);
 
 // // //       if (diff <= config.tolerance) {
-// // //         console.log("✅ ACCEPTED WITHIN TOLERANCE");
-
-// // //         emitAssignmentUpdate(assignmentId, {
-// // //           status: "ai_success",
-// // //           marks: total,
-// // //         });
-
+// // //         emitAssignmentUpdate(assignmentId, { status: "ai_success", marks: total });
 // // //         return normalized;
 // // //       }
 
-// // //       emitAssignmentUpdate(assignmentId, {
-// // //         status: "retrying",
-// // //         reason: "marks_mismatch",
-// // //       });
-
+// // //       emitAssignmentUpdate(assignmentId, { status: "retrying", reason: "marks_mismatch" });
 // // //       attempts++;
 // // //     } catch (err: any) {
 // // //       console.log("❌ AI attempt failed:", err.message);
-
-// // //       emitAssignmentUpdate(assignmentId, {
-// // //         status: "retrying",
-// // //         reason: err.message,
-// // //       });
-
+// // //       emitAssignmentUpdate(assignmentId, { status: "retrying", reason: err.message });
 // // //       attempts++;
 // // //     }
 // // //   }
 
 // // //   console.log("🛟 All retries failed → fallback");
-
-// // //   emitAssignmentUpdate(assignmentId, {
-// // //     status: "fallback",
-// // //     message: "Using fallback paper",
-// // //   });
-
+// // //   emitAssignmentUpdate(assignmentId, { status: "fallback", message: "Using fallback paper" });
 // // //   return generateFallbackPaper(assignment, config);
 // // // };
 
@@ -583,101 +841,69 @@
 
 // // // const generateFallbackPaper = (assignment: any, config: any) => {
 // // //   console.log("🛟 Generating fallback paper...");
-
 // // //   return {
-// // //     studentInfo: {
-// // //       name: "",
-// // //       rollNumber: "",
-// // //       section: "",
-// // //       class: assignment.class,
-// // //       subject: assignment.subject,
-// // //       date: "",
-// // //     },
+// // //     studentInfo: { name: "", rollNumber: "", section: "", class: assignment.class, subject: assignment.subject, date: "" },
 // // //     instructions: assignment.instructions,
 // // //     sections: ["easy", "medium", "hard"].map((d, idx) => ({
 // // //       title: `Section ${String.fromCharCode(65 + idx)}`,
-// // //       instruction:
-// // //         idx === 0 ? "Attempt all questions" : "Attempt any questions",
-// // //       questions: Array.from(
-// // //         { length: config.distribution[d] },
-// // //         (_, i) => ({
-// // //           number: i + 1,
-// // //           text: `Explain ${assignment.topic} with example.`,
-// // //           difficulty: d,
-// // //           marks: config.marks[d],
-// // //           type: "theory",
-// // //         })
-// // //       ),
+// // //       instruction: idx === 0 ? "Attempt all questions" : "Attempt any questions",
+// // //       questions: Array.from({ length: config.distribution[d] }, (_, i) => ({
+// // //         number: i + 1, text: `Explain ${assignment.topic} with example.`, difficulty: d, marks: config.marks[d], type: "theory"
+// // //       })),
 // // //     })),
 // // //   };
 // // // };
 
 // // // /* ---------------- WORKER ---------------- */
 
-// // // const isRedisAvailable = !!redisConnection;
+// // // let assignmentWorker: Worker | null = null;
 
-// // // export const assignmentWorker = isRedisAvailable ? new Worker(
-// // //   "assignmentQueue",
-// // //   async (job: Job) => {
-// // //     const { assignmentId } = job.data;
-
-// // //     if (!assignmentId) return;
-
-// // //     const start = Date.now();
-
-// // //     try {
-// // //       console.log("🚀 JOB START:", assignmentId);
-
-// // //       const assignment = await Assignment.findById(assignmentId);
-// // //       if (!assignment) throw new Error("Assignment not found");
-
-// // //       await Assignment.findByIdAndUpdate(assignmentId, {
-// // //         status: "processing",
-// // //       });
-
-// // //       emitAssignmentUpdate(assignmentId, { status: "processing" });
-
-// // //       const paper = await generateValidAIResponse(assignment, assignmentId);
-
-// // //       await Assignment.findByIdAndUpdate(assignmentId, {
-// // //         status: "completed",
-// // //         paper,
-// // //         processingTime: Date.now() - start,
-// // //       });
-
-// // //       emitAssignmentUpdate(assignmentId, {
-// // //         status: "completed",
-// // //         data: paper,
-// // //       });
-
-// // //       console.log("🎉 DONE in", Date.now() - start, "ms");
-// // //     } catch (err: any) {
-// // //       console.error("💥 ERROR:", err.message);
-
-// // //       await Assignment.findByIdAndUpdate(assignmentId, {
-// // //         status: "failed",
-// // //         errorMessage: err.message,
-// // //       });
-
-// // //       emitAssignmentUpdate(assignmentId, {
-// // //         status: "failed",
-// // //         error: err.message,
-// // //       });
+// // // const initWorker = () => {
+// // //   try {
+// // //     if (!env.REDIS_URL) {
+// // //       console.warn("⚠️ REDIS_URL not defined, worker disabled");
+// // //       return null;
 // // //     }
-// // //   },
-// // //   {
-// // //     connection: { url: env.REDIS_URL },
-// // //     concurrency: 5,
+
+// // //     const worker = new Worker(
+// // //       "assignmentQueue",
+// // //       async (job: Job) => {
+// // //         const { assignmentId } = job.data;
+// // //         if (!assignmentId) return;
+// // //         const start = Date.now();
+
+// // //         try {
+// // //           console.log("🚀 JOB START:", assignmentId);
+// // //           const assignment = await Assignment.findById(assignmentId);
+// // //           if (!assignment) throw new Error("Assignment not found");
+
+// // //           await Assignment.findByIdAndUpdate(assignmentId, { status: "processing" });
+// // //           emitAssignmentUpdate(assignmentId, { status: "processing" });
+
+// // //           const paper = await generateValidAIResponse(assignment, assignmentId);
+// // //           await Assignment.findByIdAndUpdate(assignmentId, { status: "completed", paper, processingTime: Date.now() - start });
+// // //           emitAssignmentUpdate(assignmentId, { status: "completed", data: paper });
+// // //           console.log("🎉 DONE in", Date.now() - start, "ms");
+// // //         } catch (err: any) {
+// // //           console.error("💥 ERROR:", err.message);
+// // //           await Assignment.findByIdAndUpdate(assignmentId, { status: "failed", errorMessage: err.message });
+// // //           emitAssignmentUpdate(assignmentId, { status: "failed", error: err.message });
+// // //         }
+// // //       },
+// // //       { connection: { url: env.REDIS_URL }, concurrency: 5 }
+// // //     );
+
+// // //     console.log("🔥 Worker running");
+// // //     return worker;
+// // //   } catch (err) {
+// // //     console.error("❌ Worker initialization failed:", err);
+// // //     return null;
 // // //   }
-// // // ) : null;
+// // // };
 
-// // // if (isRedisAvailable) {
-// // //   console.log("🔥 Worker running with Redis");
-// // // } else {
-// // //   console.log("⚠️ Worker disabled (Redis unavailable)");
-// // // }
+// // // assignmentWorker = initWorker();
 
-
+// // // export { assignmentWorker };
 
 
 
@@ -749,36 +975,65 @@
 
 // //   return {
 // //     studentInfo: {
-// //       name: "", rollNumber: "", section: "",
-// //       class: assignment.class, subject: assignment.subject, date: "",
+// //       name: "",
+// //       rollNumber: "",
+// //       section: "",
+// //       class: assignment.class,
+// //       subject: assignment.subject,
+// //       date: "",
 // //     },
 // //     instructions: assignment.instructions,
 
 // //     sections: difficulties.map((difficulty, idx) => {
 // //       const target = config.distribution[difficulty];
 
-// //       let questions = paper?.sections?.[idx]?.questions?.map((q: any) => {
-// //         let text = typeof q === "string" ? q.trim() : q?.text?.trim() || q?.question?.trim();
-// //         if (!text || text.length < 20) return null;
-// //         const key = text.toLowerCase();
-// //         if (seen.has(key)) text += " (Explain with different example)";
-// //         seen.add(key);
-// //         return {
-// //           text, difficulty, marks: config.marks[difficulty],
-// //           type: assignment.questionTypes?.[0] || "theory",
-// //           hint: difficulty === "hard" ? q?.hint || `Think about ${assignment.topic} in real world` : undefined,
-// //         };
-// //       }) || [];
+// //       let questions =
+// //         paper?.sections?.[idx]?.questions?.map((q: any) => {
+// //           let text =
+// //             typeof q === "string"
+// //               ? q.trim()
+// //               : q?.text?.trim() || q?.question?.trim();
+
+// //           if (!text || text.length < 20) return null;
+
+// //           const key = text.toLowerCase();
+
+// //           if (seen.has(key)) {
+// //             text += " (Explain with different example)";
+// //           }
+
+// //           seen.add(key);
+
+// //           return {
+// //             text,
+// //             difficulty,
+// //             marks: config.marks[difficulty],
+// //             type: assignment.questionTypes?.[0] || "theory",
+// //             hint:
+// //               difficulty === "hard"
+// //                 ? q?.hint || `Think about ${assignment.topic} in real world`
+// //                 : undefined,
+// //           };
+// //         }) || [];
 
 // //       questions = questions.filter(Boolean);
+
 // //       while (questions.length < target) {
-// //         questions.push({ text: `Explain ${assignment.topic} with example.`, difficulty, marks: config.marks[difficulty], type: "theory" });
+// //         questions.push({
+// //           text: `Explain ${assignment.topic} with example.`,
+// //           difficulty,
+// //           marks: config.marks[difficulty],
+// //           type: "theory",
+// //         });
 // //       }
+
 // //       questions = questions.slice(0, target);
+
 // //       questions.forEach((q: any, i: number) => (q.number = i + 1));
 
 // //       return {
 // //         title: `Section ${String.fromCharCode(65 + idx)}`,
+// //         subTitle: "", // ✅ FIXED: Added missing subTitle field
 // //         instruction: idx === 0 ? "Attempt all questions" : "Attempt any questions",
 // //         questions,
 // //       };
@@ -789,13 +1044,19 @@
 // // /* ---------------- MARKS CHECK ---------------- */
 
 // // const calculateTotalMarks = (paper: any) => {
-// //   return paper.sections.reduce((sum: number, sec: any) =>
-// //     sum + sec.questions.reduce((s: number, q: any) => s + q.marks, 0), 0);
+// //   return paper.sections.reduce(
+// //     (sum: number, sec: any) =>
+// //       sum + sec.questions.reduce((s: number, q: any) => s + q.marks, 0),
+// //     0
+// //   );
 // // };
 
 // // /* ---------------- AI FLOW ---------------- */
 
-// // export const generateValidAIResponse = async (assignment: any, assignmentId: string) => {
+// // export const generateValidAIResponse = async (
+// //   assignment: any,
+// //   assignmentId: string
+// // ) => {
 // //   const config = resolveConfig(assignment);
 // //   let attempts = 0;
 // //   const MAX_RETRIES = 3;
@@ -803,10 +1064,15 @@
 // //   while (attempts < MAX_RETRIES) {
 // //     try {
 // //       console.log(`🧠 AI Attempt ${attempts + 1}`);
-// //       emitAssignmentUpdate(assignmentId, { status: "ai_attempt", attempt: attempts + 1 });
+// //       emitAssignmentUpdate(assignmentId, {
+// //         status: "ai_attempt",
+// //         attempt: attempts + 1,
+// //       });
 
 // //       const prompt = buildPrompt(assignment, config);
-// //       const raw = await generateWithAI(prompt, (payload: any) => emitAssignmentUpdate(assignmentId, payload));
+// //       const raw = await generateWithAI(prompt, (payload: any) =>
+// //         emitAssignmentUpdate(assignmentId, payload)
+// //       );
 
 // //       const parsed = parseAIResponse(raw);
 // //       const normalized = normalizePaper(parsed, config, assignment);
@@ -819,21 +1085,33 @@
 // //       console.log("📊 Marks:", total, "| Expected:", assignment.totalMarks);
 
 // //       if (diff <= config.tolerance) {
-// //         emitAssignmentUpdate(assignmentId, { status: "ai_success", marks: total });
+// //         emitAssignmentUpdate(assignmentId, {
+// //           status: "ai_success",
+// //           marks: total,
+// //         });
 // //         return normalized;
 // //       }
 
-// //       emitAssignmentUpdate(assignmentId, { status: "retrying", reason: "marks_mismatch" });
+// //       emitAssignmentUpdate(assignmentId, {
+// //         status: "retrying",
+// //         reason: "marks_mismatch",
+// //       });
 // //       attempts++;
 // //     } catch (err: any) {
 // //       console.log("❌ AI attempt failed:", err.message);
-// //       emitAssignmentUpdate(assignmentId, { status: "retrying", reason: err.message });
+// //       emitAssignmentUpdate(assignmentId, {
+// //         status: "retrying",
+// //         reason: err.message,
+// //       });
 // //       attempts++;
 // //     }
 // //   }
 
 // //   console.log("🛟 All retries failed → fallback");
-// //   emitAssignmentUpdate(assignmentId, { status: "fallback", message: "Using fallback paper" });
+// //   emitAssignmentUpdate(assignmentId, {
+// //     status: "fallback",
+// //     message: "Using fallback paper",
+// //   });
 // //   return generateFallbackPaper(assignment, config);
 // // };
 
@@ -842,14 +1120,30 @@
 // // const generateFallbackPaper = (assignment: any, config: any) => {
 // //   console.log("🛟 Generating fallback paper...");
 // //   return {
-// //     studentInfo: { name: "", rollNumber: "", section: "", class: assignment.class, subject: assignment.subject, date: "" },
+// //     studentInfo: {
+// //       name: "",
+// //       rollNumber: "",
+// //       section: "",
+// //       class: assignment.class,
+// //       subject: assignment.subject,
+// //       date: "",
+// //     },
 // //     instructions: assignment.instructions,
 // //     sections: ["easy", "medium", "hard"].map((d, idx) => ({
 // //       title: `Section ${String.fromCharCode(65 + idx)}`,
-// //       instruction: idx === 0 ? "Attempt all questions" : "Attempt any questions",
-// //       questions: Array.from({ length: config.distribution[d] }, (_, i) => ({
-// //         number: i + 1, text: `Explain ${assignment.topic} with example.`, difficulty: d, marks: config.marks[d], type: "theory"
-// //       })),
+// //       subTitle: "", // ✅ FIXED: Added missing subTitle field
+// //       instruction:
+// //         idx === 0 ? "Attempt all questions" : "Attempt any questions",
+// //       questions: Array.from(
+// //         { length: config.distribution[d] },
+// //         (_, i) => ({
+// //           number: i + 1,
+// //           text: `Explain ${assignment.topic} with example.`,
+// //           difficulty: d,
+// //           marks: config.marks[d],
+// //           type: "theory",
+// //         })
+// //       ),
 // //     })),
 // //   };
 // // };
@@ -877,17 +1171,35 @@
 // //           const assignment = await Assignment.findById(assignmentId);
 // //           if (!assignment) throw new Error("Assignment not found");
 
-// //           await Assignment.findByIdAndUpdate(assignmentId, { status: "processing" });
+// //           await Assignment.findByIdAndUpdate(assignmentId, {
+// //             status: "processing",
+// //           });
 // //           emitAssignmentUpdate(assignmentId, { status: "processing" });
 
-// //           const paper = await generateValidAIResponse(assignment, assignmentId);
-// //           await Assignment.findByIdAndUpdate(assignmentId, { status: "completed", paper, processingTime: Date.now() - start });
-// //           emitAssignmentUpdate(assignmentId, { status: "completed", data: paper });
+// //           const paper = await generateValidAIResponse(
+// //             assignment,
+// //             assignmentId
+// //           );
+// //           await Assignment.findByIdAndUpdate(assignmentId, {
+// //             status: "completed",
+// //             paper,
+// //             processingTime: Date.now() - start,
+// //           });
+// //           emitAssignmentUpdate(assignmentId, {
+// //             status: "completed",
+// //             data: paper,
+// //           });
 // //           console.log("🎉 DONE in", Date.now() - start, "ms");
 // //         } catch (err: any) {
 // //           console.error("💥 ERROR:", err.message);
-// //           await Assignment.findByIdAndUpdate(assignmentId, { status: "failed", errorMessage: err.message });
-// //           emitAssignmentUpdate(assignmentId, { status: "failed", error: err.message });
+// //           await Assignment.findByIdAndUpdate(assignmentId, {
+// //             status: "failed",
+// //             errorMessage: err.message,
+// //           });
+// //           emitAssignmentUpdate(assignmentId, {
+// //             status: "failed",
+// //             error: err.message,
+// //           });
 // //         }
 // //       },
 // //       { connection: { url: env.REDIS_URL }, concurrency: 5 }
@@ -907,8 +1219,8 @@
 
 
 
-
 // import { Worker, Job } from "bullmq";
+// import IORedis from "ioredis";
 // import { env } from "../config/env";
 // import { Assignment } from "../modules/assignemnt/assignment.model";
 // import { generateWithAI } from "../services/ai/aiOrchestrator.service";
@@ -916,6 +1228,12 @@
 // import { validateAIOutput } from "../utils/aiValidator";
 // import { buildPrompt } from "../services/ai/promptBuilder";
 // import { emitAssignmentUpdate } from "../socket/socket.emitter";
+
+// /* ---------------- REDIS CONNECTION (FIXED) ---------------- */
+
+// const connection = new IORedis(env.REDIS_URL, {
+//   tls: {},
+// });
 
 // /* ---------------- CONFIG ENGINE ---------------- */
 
@@ -1033,8 +1351,9 @@
 
 //       return {
 //         title: `Section ${String.fromCharCode(65 + idx)}`,
-//         subTitle: "", // ✅ FIXED: Added missing subTitle field
-//         instruction: idx === 0 ? "Attempt all questions" : "Attempt any questions",
+//         subTitle: "",
+//         instruction:
+//           idx === 0 ? "Attempt all questions" : "Attempt any questions",
 //         questions,
 //       };
 //     }),
@@ -1064,12 +1383,14 @@
 //   while (attempts < MAX_RETRIES) {
 //     try {
 //       console.log(`🧠 AI Attempt ${attempts + 1}`);
+
 //       emitAssignmentUpdate(assignmentId, {
 //         status: "ai_attempt",
 //         attempt: attempts + 1,
 //       });
 
 //       const prompt = buildPrompt(assignment, config);
+
 //       const raw = await generateWithAI(prompt, (payload: any) =>
 //         emitAssignmentUpdate(assignmentId, payload)
 //       );
@@ -1096,22 +1417,27 @@
 //         status: "retrying",
 //         reason: "marks_mismatch",
 //       });
+
 //       attempts++;
 //     } catch (err: any) {
 //       console.log("❌ AI attempt failed:", err.message);
+
 //       emitAssignmentUpdate(assignmentId, {
 //         status: "retrying",
 //         reason: err.message,
 //       });
+
 //       attempts++;
 //     }
 //   }
 
 //   console.log("🛟 All retries failed → fallback");
+
 //   emitAssignmentUpdate(assignmentId, {
 //     status: "fallback",
 //     message: "Using fallback paper",
 //   });
+
 //   return generateFallbackPaper(assignment, config);
 // };
 
@@ -1119,6 +1445,7 @@
 
 // const generateFallbackPaper = (assignment: any, config: any) => {
 //   console.log("🛟 Generating fallback paper...");
+
 //   return {
 //     studentInfo: {
 //       name: "",
@@ -1131,7 +1458,7 @@
 //     instructions: assignment.instructions,
 //     sections: ["easy", "medium", "hard"].map((d, idx) => ({
 //       title: `Section ${String.fromCharCode(65 + idx)}`,
-//       subTitle: "", // ✅ FIXED: Added missing subTitle field
+//       subTitle: "",
 //       instruction:
 //         idx === 0 ? "Attempt all questions" : "Attempt any questions",
 //       questions: Array.from(
@@ -1164,45 +1491,56 @@
 //       async (job: Job) => {
 //         const { assignmentId } = job.data;
 //         if (!assignmentId) return;
+
 //         const start = Date.now();
 
 //         try {
 //           console.log("🚀 JOB START:", assignmentId);
+
 //           const assignment = await Assignment.findById(assignmentId);
 //           if (!assignment) throw new Error("Assignment not found");
 
 //           await Assignment.findByIdAndUpdate(assignmentId, {
 //             status: "processing",
 //           });
+
 //           emitAssignmentUpdate(assignmentId, { status: "processing" });
 
 //           const paper = await generateValidAIResponse(
 //             assignment,
 //             assignmentId
 //           );
+
 //           await Assignment.findByIdAndUpdate(assignmentId, {
 //             status: "completed",
 //             paper,
 //             processingTime: Date.now() - start,
 //           });
+
 //           emitAssignmentUpdate(assignmentId, {
 //             status: "completed",
 //             data: paper,
 //           });
+
 //           console.log("🎉 DONE in", Date.now() - start, "ms");
 //         } catch (err: any) {
 //           console.error("💥 ERROR:", err.message);
+
 //           await Assignment.findByIdAndUpdate(assignmentId, {
 //             status: "failed",
 //             errorMessage: err.message,
 //           });
+
 //           emitAssignmentUpdate(assignmentId, {
 //             status: "failed",
 //             error: err.message,
 //           });
 //         }
 //       },
-//       { connection: { url: env.REDIS_URL }, concurrency: 5 }
+//       {
+//         connection, // ✅ FIXED
+//         concurrency: 5,
+//       }
 //     );
 
 //     console.log("🔥 Worker running");
@@ -1219,8 +1557,9 @@
 
 
 
+
+
 import { Worker, Job } from "bullmq";
-import IORedis from "ioredis";
 import { env } from "../config/env";
 import { Assignment } from "../modules/assignemnt/assignment.model";
 import { generateWithAI } from "../services/ai/aiOrchestrator.service";
@@ -1229,17 +1568,9 @@ import { validateAIOutput } from "../utils/aiValidator";
 import { buildPrompt } from "../services/ai/promptBuilder";
 import { emitAssignmentUpdate } from "../socket/socket.emitter";
 
-/* ---------------- REDIS CONNECTION (FIXED) ---------------- */
-
-const connection = new IORedis(env.REDIS_URL, {
-  tls: {},
-});
-
 /* ---------------- CONFIG ENGINE ---------------- */
 
 const generateDynamicConfig = (totalMarks: number) => {
-  console.log("⚙️ Generating RATIO config for:", totalMarks);
-
   const marks = { easy: 2, medium: 3, hard: 5 };
   const weights = { easy: 1, medium: 2.5, hard: 1.5 };
   const totalWeight = 5;
@@ -1265,8 +1596,10 @@ const generateDynamicConfig = (totalMarks: number) => {
         const e = Math.max(2, base.easy + de);
         const m = Math.max(2, base.medium + dm);
         const h = Math.max(2, base.hard + dh);
+
         const total = e * marks.easy + m * marks.medium + h * marks.hard;
         const diff = Math.abs(total - totalMarks);
+
         if (diff < bestDiff) {
           bestDiff = diff;
           best = { easy: e, medium: m, hard: h };
@@ -1275,7 +1608,6 @@ const generateDynamicConfig = (totalMarks: number) => {
     }
   }
 
-  console.log("✅ Distribution:", best);
   return { distribution: best, marks, tolerance: 2 };
 };
 
@@ -1286,8 +1618,6 @@ const resolveConfig = (assignment: any) => {
 /* ---------------- NORMALIZER ---------------- */
 
 const normalizePaper = (paper: any, config: any, assignment: any) => {
-  console.log("🔄 Normalizing AI response...");
-
   const difficulties = ["easy", "medium", "hard"];
   const seen = new Set<string>();
 
@@ -1327,10 +1657,6 @@ const normalizePaper = (paper: any, config: any, assignment: any) => {
             difficulty,
             marks: config.marks[difficulty],
             type: assignment.questionTypes?.[0] || "theory",
-            hint:
-              difficulty === "hard"
-                ? q?.hint || `Think about ${assignment.topic} in real world`
-                : undefined,
           };
         }) || [];
 
@@ -1378,22 +1704,16 @@ export const generateValidAIResponse = async (
 ) => {
   const config = resolveConfig(assignment);
   let attempts = 0;
-  const MAX_RETRIES = 3;
 
-  while (attempts < MAX_RETRIES) {
+  while (attempts < 3) {
     try {
-      console.log(`🧠 AI Attempt ${attempts + 1}`);
-
       emitAssignmentUpdate(assignmentId, {
         status: "ai_attempt",
         attempt: attempts + 1,
       });
 
       const prompt = buildPrompt(assignment, config);
-
-      const raw = await generateWithAI(prompt, (payload: any) =>
-        emitAssignmentUpdate(assignmentId, payload)
-      );
+      const raw = await generateWithAI(prompt);
 
       const parsed = parseAIResponse(raw);
       const normalized = normalizePaper(parsed, config, assignment);
@@ -1403,8 +1723,6 @@ export const generateValidAIResponse = async (
       const total = calculateTotalMarks(normalized);
       const diff = Math.abs(total - assignment.totalMarks);
 
-      console.log("📊 Marks:", total, "| Expected:", assignment.totalMarks);
-
       if (diff <= config.tolerance) {
         emitAssignmentUpdate(assignmentId, {
           status: "ai_success",
@@ -1413,30 +1731,11 @@ export const generateValidAIResponse = async (
         return normalized;
       }
 
-      emitAssignmentUpdate(assignmentId, {
-        status: "retrying",
-        reason: "marks_mismatch",
-      });
-
       attempts++;
     } catch (err: any) {
-      console.log("❌ AI attempt failed:", err.message);
-
-      emitAssignmentUpdate(assignmentId, {
-        status: "retrying",
-        reason: err.message,
-      });
-
       attempts++;
     }
   }
-
-  console.log("🛟 All retries failed → fallback");
-
-  emitAssignmentUpdate(assignmentId, {
-    status: "fallback",
-    message: "Using fallback paper",
-  });
 
   return generateFallbackPaper(assignment, config);
 };
@@ -1444,8 +1743,6 @@ export const generateValidAIResponse = async (
 /* ---------------- FALLBACK ---------------- */
 
 const generateFallbackPaper = (assignment: any, config: any) => {
-  console.log("🛟 Generating fallback paper...");
-
   return {
     studentInfo: {
       name: "",
@@ -1477,80 +1774,60 @@ const generateFallbackPaper = (assignment: any, config: any) => {
 
 /* ---------------- WORKER ---------------- */
 
-let assignmentWorker: Worker | null = null;
+const assignmentWorker = new Worker(
+  "assignmentQueue",
+  async (job: Job) => {
+    const { assignmentId } = job.data;
+    if (!assignmentId) return;
 
-const initWorker = () => {
-  try {
-    if (!env.REDIS_URL) {
-      console.warn("⚠️ REDIS_URL not defined, worker disabled");
-      return null;
+    try {
+      const assignment = await Assignment.findById(assignmentId);
+      if (!assignment) throw new Error("Assignment not found");
+
+      await Assignment.findByIdAndUpdate(assignmentId, {
+        status: "processing",
+      });
+
+      emitAssignmentUpdate(assignmentId, { status: "processing" });
+
+      const paper = await generateValidAIResponse(
+        assignment,
+        assignmentId
+      );
+
+      await Assignment.findByIdAndUpdate(assignmentId, {
+        status: "completed",
+        paper,
+      });
+
+      emitAssignmentUpdate(assignmentId, {
+        status: "completed",
+        data: paper,
+      });
+    } catch (err: any) {
+      await Assignment.findByIdAndUpdate(assignmentId, {
+        status: "failed",
+        errorMessage: err.message,
+      });
+
+      emitAssignmentUpdate(assignmentId, {
+        status: "failed",
+        error: err.message,
+      });
     }
-
-    const worker = new Worker(
-      "assignmentQueue",
-      async (job: Job) => {
-        const { assignmentId } = job.data;
-        if (!assignmentId) return;
-
-        const start = Date.now();
-
-        try {
-          console.log("🚀 JOB START:", assignmentId);
-
-          const assignment = await Assignment.findById(assignmentId);
-          if (!assignment) throw new Error("Assignment not found");
-
-          await Assignment.findByIdAndUpdate(assignmentId, {
-            status: "processing",
-          });
-
-          emitAssignmentUpdate(assignmentId, { status: "processing" });
-
-          const paper = await generateValidAIResponse(
-            assignment,
-            assignmentId
-          );
-
-          await Assignment.findByIdAndUpdate(assignmentId, {
-            status: "completed",
-            paper,
-            processingTime: Date.now() - start,
-          });
-
-          emitAssignmentUpdate(assignmentId, {
-            status: "completed",
-            data: paper,
-          });
-
-          console.log("🎉 DONE in", Date.now() - start, "ms");
-        } catch (err: any) {
-          console.error("💥 ERROR:", err.message);
-
-          await Assignment.findByIdAndUpdate(assignmentId, {
-            status: "failed",
-            errorMessage: err.message,
-          });
-
-          emitAssignmentUpdate(assignmentId, {
-            status: "failed",
-            error: err.message,
-          });
-        }
-      },
-      {
-        connection, // ✅ FIXED
-        concurrency: 5,
-      }
-    );
-
-    console.log("🔥 Worker running");
-    return worker;
-  } catch (err) {
-    console.error("❌ Worker initialization failed:", err);
-    return null;
+  },
+  {
+    connection: {
+      host: "ruling-griffon-79931.upstash.io",
+      port: 6379,
+      username: "default",
+      password: process.env.REDIS_PASSWORD,
+      tls: {}
+    },
+    concurrency: 5
   }
-};
+);
 
-assignmentWorker = initWorker();
+console.log("🔥 Worker running");
 
 export { assignmentWorker };
