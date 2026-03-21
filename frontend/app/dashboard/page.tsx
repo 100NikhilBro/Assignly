@@ -253,11 +253,9 @@
 //   );
 // }
 
-
-
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import Header from "@/components/layout/Header";
 import { useRouter } from "next/navigation";
@@ -271,7 +269,11 @@ import {
   PlusCircle, 
   RefreshCw,
   LayoutDashboard,
-  Star
+  Star,
+  Calendar,
+  Clock,
+  Search,
+  X
 } from "lucide-react";
 
 interface Assignment {
@@ -281,6 +283,7 @@ interface Assignment {
   class: string;
   status: "pending" | "processing" | "completed" | "failed";
   createdAt: string;
+  dueDate?: string;
   totalMarks: number;
 }
 
@@ -293,6 +296,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchAssignments = useCallback(async (showRefresh = false) => {
     if (!token) {
@@ -335,11 +339,24 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, authLoading, fetchAssignments]);
 
+  // Filter assignments based on search query
+  const filteredAssignments = useMemo(() => {
+    if (!searchQuery.trim()) return assignments;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return assignments.filter(assignment => 
+      assignment.topic.toLowerCase().includes(query) ||
+      assignment.subject.toLowerCase().includes(query) ||
+      assignment.class.toLowerCase().includes(query) ||
+      assignment.status.toLowerCase().includes(query)
+    );
+  }, [assignments, searchQuery]);
+
   const stats = {
-    total: assignments.length,
-    completed: assignments.filter(a => a.status === "completed").length,
-    processing: assignments.filter(a => a.status === "processing").length,
-    failed: assignments.filter(a => a.status === "failed").length,
+    total: filteredAssignments.length,
+    completed: filteredAssignments.filter(a => a.status === "completed").length,
+    processing: filteredAssignments.filter(a => a.status === "processing").length,
+    failed: filteredAssignments.filter(a => a.status === "failed").length,
   };
 
   const getStatusBadge = (status: string) => {
@@ -355,6 +372,32 @@ export default function DashboardPage() {
       default:
         return null;
     }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "No due date";
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  const formatCreatedDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  const isOverdue = (dueDate?: string) => {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date();
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
   };
 
   if (authLoading || loading) {
@@ -475,61 +518,114 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Assignments List */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Assignments</h2>
+        {/* Search and Assignments Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Recent Assignments</h2>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by topic, subject, class..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                </button>
+              )}
+            </div>
             <button
               onClick={() => fetchAssignments(true)}
               disabled={refreshing}
-              className="text-gray-500 hover:text-indigo-600 text-sm transition flex items-center gap-1"
+              className="text-gray-500 hover:text-indigo-600 text-sm transition flex items-center gap-1 whitespace-nowrap"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
               Refresh
             </button>
           </div>
+        </div>
 
-          {assignments.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        {/* Assignments List */}
+        {filteredAssignments.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              {searchQuery ? (
+                <Search className="w-8 h-8 text-gray-400" />
+              ) : (
                 <FileText className="w-8 h-8 text-gray-400" />
-              </div>
-              <p className="text-gray-500 mb-4">No assignments yet</p>
+              )}
+            </div>
+            <p className="text-gray-500 mb-4">
+              {searchQuery 
+                ? `No assignments found matching "${searchQuery}"`
+                : "No assignments yet"}
+            </p>
+            {searchQuery ? (
+              <button
+                onClick={clearSearch}
+                className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+              >
+                Clear search
+              </button>
+            ) : (
               <button
                 onClick={() => router.push("/create-assignment")}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm transition"
               >
                 Create Your First Assignment
               </button>
-            </div>
-          ) : (
+            )}
+          </div>
+        ) : (
+          <>
+            {searchQuery && (
+              <p className="text-sm text-gray-500 mb-3">
+                Found {filteredAssignments.length} assignment{filteredAssignments.length !== 1 ? "s" : ""} for "{searchQuery}"
+              </p>
+            )}
             <div className="space-y-3">
-              {assignments.map((a) => (
+              {filteredAssignments.map((a) => (
                 <div
                   key={a._id}
                   onClick={() => router.push(`/assignment/${a._id}`)}
-                  className="bg-white hover:bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center cursor-pointer transition"
+                  className="bg-white hover:bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-start cursor-pointer transition"
                 >
                   <div className="flex-1">
                     <p className="font-semibold text-gray-900">{a.topic}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-1">
                       {a.subject} • Class {a.class} • {a.totalMarks} marks
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Date(a.createdAt).toLocaleDateString()}
-                    </p>
+                    <div className="flex flex-wrap gap-4 mt-2 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        Created: {formatCreatedDate(a.createdAt)}
+                      </span>
+                      {a.dueDate && (
+                        <span className={`flex items-center gap-1 ${isOverdue(a.dueDate) && a.status !== "completed" ? "text-red-500" : ""}`}>
+                          <Clock className="w-3 h-3" />
+                          Due: {formatDate(a.dueDate)}
+                          {isOverdue(a.dueDate) && a.status !== "completed" && " (Overdue)"}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 ml-4">
                     {getStatusBadge(a.status)}
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

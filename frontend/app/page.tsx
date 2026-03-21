@@ -133,7 +133,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import HowItWorks from "@/components/home/HowItWorks";
-import StatsSection from "@/components/home/StatsSection";
+// import StatsSection from "@/components/home/StatsSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import CTASection from "@/components/home/CTASection";
 
@@ -153,7 +153,7 @@ export default function HomePage() {
     <div className="bg-gray-50 min-h-screen">
       <Header />
       <HeroSection onStart={handleStart} />
-      <StatsSection />
+      {/* <StatsSection /> */}
       <HowItWorks />
       <FeaturesSection />
       <CTASection onStart={handleStart} />
