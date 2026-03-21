@@ -77,7 +77,7 @@ CRITICAL:
 
   
   try {
-    console.log("⚡ Trying GROQ...");
+    console.log(" Trying GROQ...");
 
     emit?.({
       status: "ai_generating",
