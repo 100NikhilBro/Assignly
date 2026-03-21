@@ -11,7 +11,7 @@ export const initSocket = (server: any) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("🔌 Client connected:", socket.id);
+    console.log("Client connected:", socket.id);
 
     socket.on("join-assignment", (assignmentId: string) => {
       socket.join(assignmentId);
