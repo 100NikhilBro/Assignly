@@ -6,7 +6,7 @@ const GUEST_CREDITS_KEY = "guest:credits:";
 const DEFAULT_GUEST_CREDITS = 3;
 const SESSION_TTL = 24 * 60 * 60; // 24 hours in seconds
 
-=
+
 const memoryStorage = new Map<string, { credits: number; ttl: number }>();
 
 
