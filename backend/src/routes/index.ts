@@ -11,7 +11,7 @@ const router = express.Router();
 router.use("/auth", authRoutes);
 router.get("/guest/credits", getGuestCreditsController);
 
-// ✅ Protected routes - add authMiddleware
+// rotected routes - add authMiddleware
 router.use("/assignment", authMiddleware, assignmentRoutes);
 router.use("/user", authMiddleware, userRoutes);
 
