@@ -134,8 +134,6 @@
 //   );
 // }
 
-
-
 "use client";
 
 import { useState } from "react";
@@ -146,9 +144,9 @@ import { useAuth } from "../hooks/useAuth";
 import Header from "@/components/layout/Header";
 import { Sparkles, Star, ChevronLeft } from "lucide-react";
 
-// Helper: Get or create guest session ID
-const getOrCreateSessionId = () => {
-  if (typeof window === 'undefined') return null;
+// Helper: Get or create guest session ID - FIXED to return string | undefined
+const getOrCreateSessionId = (): string | undefined => {
+  if (typeof window === 'undefined') return undefined;
   let sessionId = localStorage.getItem("guest_session_id");
   if (!sessionId) {
     sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -172,7 +170,7 @@ export default function LoginPage() {
       setError("");
       const decoded: any = jwtDecode(credentialResponse.credential);
 
-      const sessionId = getOrCreateSessionId();
+      const sessionId = getOrCreateSessionId(); // Now returns string | undefined
 
       const result = await googleLogin(
         credentialResponse.credential,
@@ -181,7 +179,7 @@ export default function LoginPage() {
           name: decoded.name,
           googleId: decoded.sub,
         },
-        sessionId
+        sessionId // This is now string | undefined, not null
       );
 
       if (result.success) {
