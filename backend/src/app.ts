@@ -5,10 +5,11 @@ import helmet from "helmet";
 import morgan from 'morgan';
 import routes from "./routes";
 const app:Application = express();
+import { helmetConfig } from "./config/helmet.config";
 
 app.use(morgan('dev'));
 app.use(cors());
-app.use(helmet());
+app.use(helmetConfig);
 app.use(express.json());
 
 
