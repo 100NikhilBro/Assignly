@@ -137,8 +137,6 @@
 
 
 
-
-
 "use client";
 
 import { useState } from "react";
@@ -147,7 +145,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../hooks/useAuth";
 import Header from "@/components/layout/Header";
-import { LogIn, Sparkles, Star } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 
 // Helper: Get or create guest session ID
 const getOrCreateSessionId = () => {
@@ -164,7 +162,6 @@ export default function LoginPage() {
   const { googleLogin, isLoading, isAuthenticated } = useAuth();
   const [error, setError] = useState("");
 
-  // Redirect if already authenticated
   if (isAuthenticated) {
     router.push("/dashboard");
     return null;
@@ -174,7 +171,7 @@ export default function LoginPage() {
     try {
       setError("");
       const decoded: any = jwtDecode(credentialResponse.credential);
-      
+
       const sessionId = getOrCreateSessionId();
 
       const result = await googleLogin(
@@ -206,27 +203,37 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="relative min-h-screen bg-[#fdfaf5]">
+
+      {/* Background Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#f3eee6_1px,transparent_1px),linear-gradient(to_bottom,#f3eee6_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+
+      {/* Soft Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-amber-50/40" />
+
       <Header />
 
-      <div className="flex justify-center items-center min-h-[80vh] px-4">
-        <div className="bg-white p-8 rounded-2xl text-center w-full max-w-md shadow-lg border border-gray-100">
+      <div className="relative flex justify-center items-center min-h-[80vh] px-4">
 
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-indigo-600" />
+        <div className="bg-white/90 backdrop-blur-md p-8 rounded-2xl text-center w-full max-w-md shadow-md border border-amber-100">
+
+          {/* Icon */}
+          <div className="flex justify-center mb-5">
+            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-amber-700" />
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold mb-2 text-gray-900">
-            PaperMind
+          {/* Title */}
+          <h1 className="text-3xl font-bold mb-1 text-gray-900">
+            Assignly
           </h1>
-          
+
           <p className="text-gray-500 mb-6 text-sm">
-            Forge Better Assignments
+            Smart Assignments, Simplified
           </p>
 
-          {/* Error Message */}
+          {/* Error */}
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm">
               {error}
@@ -234,7 +241,7 @@ export default function LoginPage() {
           )}
 
           {/* Google Login */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-5">
             <GoogleLogin
               onSuccess={handleSuccess}
               onError={() => setError("Google Login Failed")}
@@ -248,10 +255,10 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
+              <div className="w-full border-t border-amber-100"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-400">or</span>
+              <span className="bg-white px-3 text-gray-400">or</span>
             </div>
           </div>
 
@@ -259,13 +266,13 @@ export default function LoginPage() {
           <button
             onClick={handleGuestLogin}
             disabled={isLoading}
-            className="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 py-3 rounded-lg font-medium transition disabled:opacity-50 border border-gray-200 flex items-center justify-center gap-2"
+            className="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 py-3 rounded-lg font-medium transition disabled:opacity-50 border border-amber-200 flex items-center justify-center gap-2"
           >
-            <Star className="w-4 h-4 text-amber-500" />
+            <Star className="w-4 h-4 text-amber-600" />
             Continue as Guest (3 free credits)
           </button>
 
-          {/* Footer Note */}
+          {/* Footer */}
           <p className="text-xs text-gray-400 mt-6">
             By continuing, you agree to our Terms and Privacy Policy
           </p>
