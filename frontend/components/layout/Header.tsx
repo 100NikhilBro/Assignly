@@ -192,9 +192,6 @@
 // }
 
 
-
-
-
 "use client";
 
 import Link from "next/link";
@@ -226,7 +223,7 @@ export default function Header() {
 
   const handleCreate = () => {
     if (!user) {
-      toast.error("Please login to create assignments");
+      toast.error("Login required");
       router.push("/login");
       return;
     }
@@ -248,7 +245,7 @@ export default function Header() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg border-b border-amber-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* MAIN BAR */}
@@ -256,11 +253,11 @@ export default function Header() {
 
           {/* LOGO */}
           <Link href="/" className="flex flex-col leading-tight">
-            <span className="text-lg sm:text-xl font-bold text-indigo-600">
+            <span className="text-lg sm:text-xl font-bold text-amber-700">
               Assignly
             </span>
             <span className="text-[9px] sm:text-[10px] text-gray-400 -mt-1">
-              Smart assignments in seconds ⚡
+              Craft smarter assignments ✍️
             </span>
           </Link>
 
@@ -269,11 +266,11 @@ export default function Header() {
 
             {/* Credits */}
             {user && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 shadow-sm">
-                <Star className="w-4 h-4 text-amber-500" />
-                <span className="text-xs sm:text-sm font-medium">
-                  <span className="text-gray-600">Credits:</span>{" "}
-                  <span className="text-amber-600 font-bold">{credits}</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200">
+                <Star className="w-4 h-4 text-amber-600" />
+                <span className="text-sm font-medium text-gray-700">
+                  Credits:{" "}
+                  <span className="text-amber-700 font-bold">{credits}</span>
                 </span>
               </div>
             )}
@@ -284,7 +281,7 @@ export default function Header() {
                 href="/dashboard"
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition ${
                   isActive("/dashboard")
-                    ? "bg-indigo-50 text-indigo-600"
+                    ? "bg-amber-100 text-amber-700"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -296,26 +293,25 @@ export default function Header() {
             {/* CREATE BUTTON */}
             <button
               onClick={handleCreate}
-              className="flex items-center gap-2 px-4 lg:px-5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all"
+              className="flex items-center gap-2 px-4 lg:px-5 py-2 rounded-xl text-sm font-semibold text-white bg-amber-700 hover:bg-amber-800 shadow-md hover:shadow-lg transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Create Assignment</span>
-              <span className="sm:hidden">Create</span>
+              Create
             </button>
 
-            {/* AUTH */}
+            {/* LOGIN */}
             {!user ? (
               <button
                 onClick={() => router.push("/login")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm border border-gray-200 hover:bg-gray-50 transition"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-amber-200 text-amber-700 hover:bg-amber-50 transition"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-4 h-4 text-amber-700" />
                 Login
               </button>
             ) : (
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm border border-gray-200 hover:bg-red-50 hover:text-red-600 transition"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
               >
                 <LogOut className="w-4 h-4" />
                 Logout
@@ -326,12 +322,12 @@ export default function Header() {
           {/* MOBILE BUTTON */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
+              <X className="w-6 h-6 text-gray-700" />
             ) : (
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6 text-gray-700" />
             )}
           </button>
         </div>
@@ -343,11 +339,11 @@ export default function Header() {
             {/* Credits */}
             {user && (
               <div className="flex justify-between items-center px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
-                <span className="text-sm flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-500" />
+                <span className="flex items-center gap-2 text-sm text-gray-700">
+                  <Star className="w-4 h-4 text-amber-600" />
                   Credits
                 </span>
-                <span className="font-bold text-amber-600">{credits}</span>
+                <span className="font-bold text-amber-700">{credits}</span>
               </div>
             )}
 
@@ -357,7 +353,7 @@ export default function Header() {
                 handleCreate();
                 setMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium"
+              className="w-full flex items-center justify-center gap-2 bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-medium"
             >
               <Plus className="w-4 h-4" />
               Create Assignment
@@ -375,16 +371,16 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Auth */}
+            {/* Login */}
             {!user ? (
               <button
                 onClick={() => {
                   router.push("/login");
                   setMobileMenuOpen(false);
                 }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 hover:bg-gray-50"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-amber-200 text-amber-700 hover:bg-amber-50"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-4 h-4 text-amber-700" />
                 Login
               </button>
             ) : (
