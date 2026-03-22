@@ -402,8 +402,6 @@
 //   return null;
 // }
 
-
-
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -598,18 +596,12 @@ export default function AssignmentPage() {
     fetchAssignment();
   };
 
-  // Loading State
   if (loading) {
     return (
       <div className="relative min-h-screen bg-[#fdfaf5]">
-        {/* Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#f3eee6_1px,transparent_1px),linear-gradient(to_bottom,#f3eee6_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-        
-        {/* Soft Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-amber-50/40" />
-        
         <Header />
-        
         <div className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 sm:px-6">
           <div className="relative">
             <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
@@ -630,18 +622,12 @@ export default function AssignmentPage() {
     );
   }
 
-  // Failed State
   if (assignment?.status === "failed") {
     return (
       <div className="relative min-h-screen bg-[#fdfaf5]">
-        {/* Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#f3eee6_1px,transparent_1px),linear-gradient(to_bottom,#f3eee6_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-        
-        {/* Soft Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-amber-50/40" />
-        
         <Header />
-        
         <div className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 sm:px-6">
           <div className="text-center w-full max-w-md mx-auto">
             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -673,9 +659,9 @@ export default function AssignmentPage() {
     );
   }
 
-  // Completed State
   if (assignment?.status === "completed" && assignment.paper) {
     const paper = assignment.paper;
+    const currentDate = new Date().toLocaleDateString('en-GB');
     
     const fixedSections = paper.sections?.map(section => ({
       ...section,
@@ -684,34 +670,29 @@ export default function AssignmentPage() {
     
     return (
       <div className="relative min-h-screen bg-[#fdfaf5]">
-        {/* Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#f3eee6_1px,transparent_1px),linear-gradient(to_bottom,#f3eee6_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-        
-        {/* Soft Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-amber-50/40" />
-        
         <Header />
         
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-8">
-          {/* Action Buttons - Responsive */}
           <div className="flex flex-col sm:flex-row justify-end gap-3 mb-6 no-print">
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-lg transition text-sm font-medium"
+              className="flex items-center justify-center gap-2 bg-white border border-amber-200 text-gray-700 hover:bg-amber-50 px-3 sm:px-4 py-2 rounded-lg transition text-sm font-medium"
             >
               <Home className="w-4 h-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-3 sm:px-4 py-2 rounded-lg transition text-sm font-medium"
+              className="flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-3 sm:px-4 py-2 rounded-lg transition text-sm font-medium"
             >
               <Printer className="w-4 h-4" />
               <span>Print / Save PDF</span>
             </button>
             <button
               onClick={() => router.push("/create-assignment")}
-              className="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-lg transition text-sm font-medium"
+              className="flex items-center justify-center gap-2 bg-white border border-amber-200 text-gray-700 hover:bg-amber-50 px-3 sm:px-4 py-2 rounded-lg transition text-sm font-medium"
             >
               <PlusCircle className="w-4 h-4" />
               <span>New Assignment</span>
@@ -721,108 +702,84 @@ export default function AssignmentPage() {
           {/* Professional Question Paper Format */}
           <div
             ref={pdfRef}
-            className="bg-white text-black print-container shadow-xl rounded-lg border border-gray-200 overflow-hidden"
+            className="bg-white text-black print-container shadow-lg rounded-xl border border-amber-100"
             style={{ 
               fontFamily: "'Times New Roman', Times, serif", 
               fontSize: '12pt', 
-              lineHeight: '1.5',
+              lineHeight: '1.3',
               padding: '0.75in',
               maxWidth: '100%',
               margin: '0 auto'
             }}
           >
             {/* TOP SECTION - School Header */}
-            <div className="mb-8 text-center">
-              {/* Big School Name */}
+            <div className="mb-4">
+              {/* School Name - Bigger and with proper gap below */}
               {assignment.schoolName && (
-                <h1 className="text-3xl sm:text-4xl font-bold uppercase tracking-wide mb-6 text-black border-b-2 border-gray-300 pb-4 inline-block">
+                <h1 className="text-center text-3xl sm:text-4xl font-bold uppercase tracking-wide mb-8 text-gray-900">
                   {assignment.schoolName}
                 </h1>
               )}
               
-              {/* Title */}
-              <h2 className="text-xl sm:text-2xl font-bold uppercase mt-6 mb-2 text-black">
-                {assignment.subject} Examination
-              </h2>
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                {assignment.topic}
-              </h3>
-            </div>
-
-            {/* Subject & Class Info with proper gap */}
-            <div className="mb-8">
-              <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-200">
-                <div>
-                  <p className="text-sm font-semibold text-gray-600">SUBJECT</p>
-                  <p className="text-base font-bold text-black">{assignment.subject}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-600">CLASS</p>
-                  <p className="text-base font-bold text-black">{assignment.class}</p>
-                </div>
-              </div>
+              {/* Subject and Class Section */}
+              <p className="text-sm font-semibold mt-2">
+                Subject: {assignment.subject}
+              </p>
+              <p className="text-sm font-semibold">
+                Class: {assignment.class}
+              </p>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-gray-600">TIME ALLOWED</p>
-                  <p className="text-base text-black">{assignment.timeAllowed}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-600">MAXIMUM MARKS</p>
-                  <p className="text-base text-black">{assignment.totalMarks}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Instructions with proper spacing */}
-            <div className="mb-8">
-              <p className="text-sm italic text-gray-600 mb-4">
+              <div className="my-2"></div>
+              
+              <p className="text-sm time-text">
+                Time Allowed: {assignment.timeAllowed}
+              </p>
+              <p className="text-sm marks-text">
+                Maximum Marks: {assignment.totalMarks}
+              </p>
+              
+              <div className="my-2"></div>
+              
+              <p className="text-sm italic instructions-text">
                 All questions are compulsory unless stated otherwise.
               </p>
               
+              <div className="my-3"></div>
+              
               {/* Student Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-4 border-t border-gray-200">
-                <div>
-                  <span className="text-sm font-semibold text-gray-600">Name:</span>
-                  <span className="ml-2 border-b border-gray-400 inline-block w-full sm:w-32"></span>
-                </div>
-                <div>
-                  <span className="text-sm font-semibold text-gray-600">Roll Number:</span>
-                  <span className="ml-2 border-b border-gray-400 inline-block w-full sm:w-24"></span>
-                </div>
-                <div>
-                  <span className="text-sm font-semibold text-gray-600">Section:</span>
-                  <span className="ml-2 border-b border-gray-400 inline-block w-full sm:w-20"></span>
-                </div>
+              <div className="flex flex-wrap gap-6 text-sm student-info">
+                <span>Name: <span className="border-b border-gray-400 inline-block w-40 ml-2"></span></span>
+                <span>Roll Number: <span className="border-b border-gray-400 inline-block w-32 ml-2"></span></span>
+                <span>Section: <span className="border-b border-gray-400 inline-block w-20 ml-2"></span></span>
               </div>
             </div>
 
             {/* GENERAL INSTRUCTIONS */}
-            <div className="mb-8">
-              <h3 className="text-base font-bold uppercase tracking-wide mb-3 text-black border-l-4 border-gray-900 pl-3">
+            <div className="mb-4 general-instructions">
+              <h3 className="text-sm font-bold uppercase tracking-wide mb-1">
                 GENERAL INSTRUCTIONS:
               </h3>
-              <div className="text-sm leading-relaxed space-y-1 ml-4">
+              <div className="text-sm leading-relaxed space-y-0 ml-4">
                 <p>1. All questions are compulsory.</p>
                 <p>2. Write your answers in the space provided.</p>
                 <p>3. Read each question carefully before answering.</p>
                 <p>4. Marks are indicated against each question.</p>
-                <p className="mt-2 text-gray-700">{paper.instructions}</p>
+                <p className="mt-1">{paper.instructions}</p>
               </div>
             </div>
 
             {/* QUESTION SECTIONS */}
             {fixedSections.map((section, sectionIdx) => (
-              <div key={sectionIdx} className="mb-8">
-                <h2 className="text-center text-xl font-bold uppercase tracking-wide mb-2 text-black">
+              <div key={sectionIdx} className="mb-4">
+                <h2 className="text-center text-lg font-bold uppercase tracking-wide mb-0 section-title">
                   {section.title}
                 </h2>
-                <p className="text-center text-sm font-semibold mb-1 text-gray-700">
+                <p className="text-center text-sm font-semibold mb-0 section-subtitle">
                   {section.title === "Section A" ? "Short Answer Questions" : 
                    section.title === "Section B" ? "Long Answer Questions" : 
                    "Analytical Questions"}
                 </p>
-                <p className="text-center text-xs italic text-gray-500 mb-4">
+                <p className="text-center text-xs italic text-gray-600 mb-2 section-instruction">
                   {section.instruction}
                 </p>
                 
@@ -832,20 +789,20 @@ export default function AssignmentPage() {
                   cleanText = cleanText.trim();
                   
                   return (
-                    <div key={qIdx} className="mb-4">
-                      <p className="text-sm leading-relaxed">
-                        <span className="font-bold">{q.number}.</span>{' '}
-                        <span className="break-words">{cleanText}</span>
+                    <div key={qIdx} className="mb-0 question-item">
+                      <p className="text-sm leading-tight question-text">
+                        <span className="font-bold question-number">{q.number}.</span>{' '}
+                        {cleanText}
                         {!cleanText.includes(`(${q.marks}`) && (
-                          <span className="font-semibold"> ({q.marks} marks)</span>
+                          <span className="font-semibold"> ({q.marks})</span>
                         )}
                       </p>
                       {q.hint && (
-                        <p className="text-xs text-gray-500 mt-1 italic ml-6">
-                          💡 Hint: {q.hint}
+                        <p className="text-xs text-gray-500 mt-0 italic ml-6 hint-text">
+                          Hint: {q.hint}
                         </p>
                       )}
-                      <div className="mt-3 ml-6 h-4 border-b border-dashed border-gray-200"></div>
+                      <div className="mt-0 ml-6 h-3 answer-space"></div>
                     </div>
                   );
                 })}
@@ -853,24 +810,24 @@ export default function AssignmentPage() {
             ))}
 
             {/* FOOTER */}
-            <div className="text-center text-xs text-gray-400 mt-8 pt-4 border-t border-gray-200">
+            <div className="text-center text-xs text-gray-400 mt-2 pt-1 footer-text">
               Best of Luck!
             </div>
           </div>
 
           {/* Mobile Bottom Action Bar */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 sm:hidden no-print shadow-lg z-10">
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-amber-100 p-3 sm:hidden no-print shadow-lg z-10">
             <div className="flex gap-2">
               <button
                 onClick={handlePrint}
-                className="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg transition text-sm font-medium flex items-center justify-center gap-2"
+                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg transition text-sm font-medium flex items-center justify-center gap-2"
               >
                 <Printer className="w-4 h-4" />
                 Print
               </button>
               <button
                 onClick={() => router.push("/create-assignment")}
-                className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-2 rounded-lg transition text-sm font-medium flex items-center justify-center gap-2"
+                className="flex-1 bg-white border border-amber-200 text-gray-700 hover:bg-amber-50 py-2 rounded-lg transition text-sm font-medium flex items-center justify-center gap-2"
               >
                 <PlusCircle className="w-4 h-4" />
                 New
