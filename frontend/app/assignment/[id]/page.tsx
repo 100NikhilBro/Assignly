@@ -3118,6 +3118,8 @@
 //   return null;
 // }
 
+
+
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -3127,7 +3129,7 @@ import Header from "@/components/layout/Header";
 import { getSocket, onAssignmentUpdate, joinAssignmentRoom } from "../../lib/socket";
 import { printPDF } from "../../lib/printPdf";
 import { useUserStore } from "../../store/userStore";
-import { Printer, PlusCircle, XCircle, Home, RefreshCw, Loader2, CreditCard, Eye, EyeOff, Settings, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Printer, PlusCircle, XCircle, Home, RefreshCw, Loader2, CreditCard, Eye, EyeOff, Settings, ChevronDown, ChevronUp, X, Users, BookOpen, Lightbulb } from "lucide-react";
 import toast from "react-hot-toast";
 
 type AssignmentStatus = "pending" | "processing" | "completed" | "failed";
@@ -3193,6 +3195,8 @@ export default function AssignmentPage() {
   const [showDifficulty, setShowDifficulty] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedMCQs, setExpandedMCQs] = useState<Set<string>>(new Set());
+  const [sectionLimits, setSectionLimits] = useState<Record<string, string>>({});
+  const [showLimitInput, setShowLimitInput] = useState<Record<string, boolean>>({});
   
   const pdfRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -3411,6 +3415,52 @@ export default function AssignmentPage() {
     });
   };
 
+  const getSectionTypeInfo = (title: string) => {
+    if (title === "Section A") {
+      return {
+        type: "Short Answer Questions",
+        description: "Conceptual Understanding",
+        icon: BookOpen
+      };
+    } else if (title === "Section B") {
+      return {
+        type: "Long Answer Questions",
+        description: "Application Based Questions",
+        icon: Users
+      };
+    } else if (title === "Section C") {
+      return {
+        type: "Multiple Choice Questions",
+        description: "Critical Thinking Questions",
+        icon: Lightbulb
+      };
+    }
+    return {
+      type: "Questions",
+      description: "",
+      icon: BookOpen
+    };
+  };
+
+  const handleLimitChange = (sectionTitle: string, value: string) => {
+    setSectionLimits(prev => ({ ...prev, [sectionTitle]: value }));
+  };
+
+  const applyLimit = (sectionTitle: string) => {
+    const limit = sectionLimits[sectionTitle];
+    if (limit === "all" || !limit) {
+      setShowLimitInput(prev => ({ ...prev, [sectionTitle]: false }));
+      return;
+    }
+    
+    const numLimit = parseInt(limit);
+    if (!isNaN(numLimit) && numLimit > 0) {
+      // Apply limit logic here - you can implement this based on your needs
+      toast.success(`Showing ${numLimit} questions in ${sectionTitle}`);
+    }
+    setShowLimitInput(prev => ({ ...prev, [sectionTitle]: false }));
+  };
+
   const renderQuestionContent = (q: Question, questionKey: string) => {
     const isMCQ = q.type?.toLowerCase() === 'mcq' || q.type?.toLowerCase() === 'multiple choice';
     const isFillBlank = q.type?.toLowerCase() === 'fill in the blank' || q.type?.toLowerCase() === 'fill in blanks';
@@ -3477,7 +3527,7 @@ export default function AssignmentPage() {
         
         {q.hint && (
           <p className="text-xs text-gray-400 mt-0.5 ml-5">
-            💡 Hint: {q.hint}
+             Hint: {q.hint}
           </p>
         )}
         <div className="mt-1 ml-5 h-2"></div>
@@ -3563,8 +3613,8 @@ export default function AssignmentPage() {
         <Header />
         
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 pb-20 sm:pb-6">
-          {/* Action Buttons - Consistent for all screens */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 no-print">
+          {/* Action Buttons - Only visible on desktop */}
+          <div className="hidden sm:flex flex-wrap items-center justify-between gap-2 mb-4 no-print">
             {user && (
               <div className="flex items-center gap-1.5 bg-white border border-amber-200 rounded-lg px-3 py-1.5 shadow-sm">
                 <CreditCard className="w-3.5 h-3.5 text-amber-600" />
@@ -3670,6 +3720,38 @@ export default function AssignmentPage() {
             </div>
           </div>
 
+          {/* Mobile Bottom Action Bar - Simplified for mobile */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-amber-100 py-2 px-4 sm:hidden no-print shadow-lg z-10">
+            <div className="flex justify-around items-center">
+              {user && (
+                <div className="flex items-center gap-1 bg-amber-50 rounded-full px-2 py-1">
+                  <CreditCard className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="text-xs font-medium text-gray-700">
+                    {user.credits}
+                  </span>
+                </div>
+              )}
+              
+              <button
+                onClick={handlePrint}
+                className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-amber-600 transition-colors"
+                aria-label="Print"
+              >
+                <Printer className="w-5 h-5" />
+                <span className="text-[10px]">Print</span>
+              </button>
+              
+              <button
+                onClick={() => router.push("/create-assignment")}
+                className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-amber-600 transition-colors"
+                aria-label="New Assignment"
+              >
+                <PlusCircle className="w-5 h-5" />
+                <span className="text-[10px]">New</span>
+              </button>
+            </div>
+          </div>
+
           {/* Question Paper */}
           <div
             ref={pdfRef}
@@ -3731,31 +3813,89 @@ export default function AssignmentPage() {
             </div>
 
             {/* QUESTION SECTIONS */}
-            {fixedSections.map((section, sectionIdx) => (
-              <div key={sectionIdx} className="mb-3">
-                <h2 className="text-center text-base font-bold uppercase tracking-wide mb-0">
-                  {section.title}
-                </h2>
-                <p className="text-center text-xs font-semibold mb-0">
-                  {section.title === "Section A" ? "Short Answer Questions" : 
-                   section.title === "Section B" ? "Long Answer Questions" : 
-                   section.title === "Section C" ? "Multiple Choice Questions" :
-                   "Questions"}
-                </p>
-                <p className="text-center text-[10px] italic text-gray-600 mb-1">
-                  {section.instruction}
-                </p>
-                
-                {section.questions?.map((q, qIdx) => {
-                  const questionKey = `${sectionIdx}-${qIdx}`;
-                  return (
-                    <div key={qIdx} className="mb-2">
-                      {renderQuestionContent(q, questionKey)}
+            {fixedSections.map((section, sectionIdx) => {
+              const sectionInfo = getSectionTypeInfo(section.title);
+              const IconComponent = sectionInfo.icon;
+              const totalQuestions = section.questions?.length || 0;
+              
+              return (
+                <div key={sectionIdx} className="mb-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex-1">
+                      <h2 className="text-center text-base font-bold uppercase tracking-wide">
+                        {section.title}
+                      </h2>
+                      <div className="flex items-center justify-center gap-2 mt-0.5">
+                        <IconComponent className="w-3 h-3 text-amber-600" />
+                        <p className="text-center text-xs font-medium text-gray-700">
+                          {sectionInfo.type}
+                        </p>
+                        <span className="text-[10px] text-gray-500">•</span>
+                        <p className="text-center text-xs italic text-gray-600">
+                          {sectionInfo.description}
+                        </p>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            ))}
+                    
+                    {/* Section Question Limit - Only on Desktop */}
+                    <div className="hidden sm:block ml-2 no-print">
+                      {showLimitInput[section.title] ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={sectionLimits[section.title] || ''}
+                            onChange={(e) => handleLimitChange(section.title, e.target.value)}
+                            placeholder="Number or 'all'"
+                            className="w-24 px-2 py-1 text-xs border border-amber-200 rounded focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => applyLimit(section.title)}
+                            className="px-2 py-1 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
+                          >
+                            Apply
+                          </button>
+                          <button
+                            onClick={() => setShowLimitInput(prev => ({ ...prev, [section.title]: false }))}
+                            className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setShowLimitInput(prev => ({ ...prev, [section.title]: true }))}
+                          className="text-xs text-gray-500 hover:text-amber-600 px-2 py-1 rounded border border-gray-200 hover:border-amber-200 transition"
+                        >
+                          Attempt: {sectionLimits[section.title] === 'all' || !sectionLimits[section.title] ? 'All' : sectionLimits[section.title]} / {totalQuestions}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <p className="text-center text-[10px] italic text-gray-500 mb-2">
+                    {section.instruction}
+                  </p>
+                  
+                  {/* Mobile Section Info */}
+                  <div className="sm:hidden text-center mb-2">
+                    <p className="text-[10px] text-gray-600">{sectionInfo.description}</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">
+                      Total Questions: {totalQuestions}
+                    </p>
+                  </div>
+                  
+                  {section.questions?.map((q, qIdx) => {
+                    const questionKey = `${sectionIdx}-${qIdx}`;
+                    return (
+                      <div key={qIdx} className="mb-2">
+                        {renderQuestionContent(q, questionKey)}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
 
             <div className="text-center text-[10px] text-gray-400 mt-2 pt-1">
               Best of Luck!
