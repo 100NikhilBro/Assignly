@@ -8,16 +8,24 @@
   Generate exam-ready question papers using AI — backed by validation pipelines, async processing, and real-time updates.
 </p>
 
+---
+
+## 🎥 Demo
+
+👉 https://youtu.be/Rtrf6n0DlC8
+
+---
+
+## 🖼️ Product Preview
+
 <p align="center">
-  <a href="https://youtu.be/Rtrf6n0DlC8">
-    <img src="https://img.youtube.com/vi/Rtrf6n0DlC8/0.jpg" alt="Watch Demo" />
-  </a>
+  <img src="https://github.com/100NikhilBro/Assignly/blob/main/Screenshot%202026-03-24%20035329.png" width="45%" />
+  <img src="https://github.com/100NikhilBro/Assignly/blob/main/Screenshot%202026-03-24%20035742.png" width="45%" />
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/Rtrf6n0DlC8">
-    <b>▶ Watch Full Video Demo</b>
-  </a>
+  <img src="https://github.com/100NikhilBro/Assignly/blob/main/Screenshot%202026-03-24%20040426.png" width="45%" />
+  <img src="https://github.com/100NikhilBro/Assignly/blob/main/Screenshot%202026-03-24%20040511.png" width="45%" />
 </p>
 
 ---
@@ -33,12 +41,6 @@ Instead, it enforces a strict processing pipeline to ensure:
 * Validation of content
 * Consistent formatting
 * Reliable delivery
-
----
-
-## 🎥 Demo
-
-👉 Full working demo: https://youtu.be/Rtrf6n0DlC8
 
 ---
 
