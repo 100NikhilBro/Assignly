@@ -768,7 +768,7 @@ import Header from "@/components/layout/Header";
 import { getSocket, onAssignmentUpdate, joinAssignmentRoom } from "../../lib/socket";
 import { printPDF } from "../../lib/printPdf";
 import { useUserStore } from "../../store/userStore";
-import { Printer, PlusCircle, XCircle, Home, RefreshCw, Loader2, CreditCard, Eye, EyeOff, Settings, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Printer, PlusCircle, XCircle, RefreshCw, Loader2, CreditCard, Eye, EyeOff, Settings, ChevronDown, ChevronUp, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 type AssignmentStatus = "pending" | "processing" | "completed" | "failed";
@@ -853,16 +853,13 @@ export default function AssignmentPage() {
       // Initialize attempts for each section (default to total questions)
       if (data.paper?.sections) {
         const initialAttempts: Record<string, number> = {};
-        data.paper.sections.forEach((section: Section) => {
-          initialAttempts[section.title] = section.questions?.length || 0;
-        });
-        setSectionAttempts(initialAttempts);
-        
-        // Initialize temp attempts
         const initialTemp: Record<string, string> = {};
         data.paper.sections.forEach((section: Section) => {
-          initialTemp[section.title] = String(section.questions?.length || 0);
+          const total = section.questions?.length || 0;
+          initialAttempts[section.title] = total;
+          initialTemp[section.title] = String(total);
         });
+        setSectionAttempts(initialAttempts);
         setTempAttempts(initialTemp);
       }
 
@@ -1047,7 +1044,8 @@ export default function AssignmentPage() {
 
   const handlePrint = () => {
     if (pdfRef.current) {
-      printPDF(pdfRef.current, `${assignment?.topic || "assignment"}`);
+      // Pass section attempts data to the print function
+      printPDF(pdfRef.current, `${assignment?.topic || "assignment"}`, sectionAttempts);
     }
   };
 
@@ -1408,7 +1406,7 @@ export default function AssignmentPage() {
               margin: '0 auto'
             }}
           >
-            {/* TOP SECTION - School Header with extra spacing */}
+            {/* TOP SECTION - School Header */}
             <div className="mb-8">
               {assignment.schoolName && (
                 <h1 className="text-center text-3xl font-bold uppercase tracking-wide mb-12 text-black">
@@ -1425,8 +1423,6 @@ export default function AssignmentPage() {
                 <p>Time Allowed: {assignment.timeAllowed}</p>
                 <p>Maximum Marks: {assignment.totalMarks}</p>
               </div>
-              
-              <div className="my-3"></div>
               
               <div className="my-3"></div>
               
@@ -1457,18 +1453,18 @@ export default function AssignmentPage() {
               const attemptValue = sectionAttempts[section.title] || totalQuestions;
               
               return (
-                <div key={sectionIdx} className="mb-4">
+                <div key={sectionIdx} className="mb-4 section-container" data-section-title={section.title}>
                   <div className="mb-2">
-                    <h2 className="text-center text-lg font-bold uppercase tracking-wide">
+                    <h2 className="text-center text-lg font-bold uppercase tracking-wide section-title">
                       {section.title}
                     </h2>
                     {sectionDescription && (
-                      <p className="text-center text-xs italic mt-0.5 text-gray-600">
+                      <p className="text-center text-xs italic mt-0.5 text-gray-600 section-description">
                         {sectionDescription}
                       </p>
                     )}
                     
-                    {/* Dynamic Attempt Input - Shows "Attempt X out of Y" but doesn't hide questions */}
+                    {/* Dynamic Attempt Input - Shows "Attempt X out of Y" */}
                     <div className="flex justify-center mt-2 no-print">
                       <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
                         <span className="text-xs text-gray-600">Attempt:</span>
@@ -1491,8 +1487,8 @@ export default function AssignmentPage() {
                       </div>
                     </div>
                     
-                    {/* Display current attempt info - No "Attempt all" or "Attempt any" text */}
-                    <div className="text-center text-xs text-gray-500 mt-1 no-print">
+                    {/* Display current attempt info - This will be shown on print */}
+                    <div className="text-center text-xs text-gray-500 mt-1 attempt-info-display" data-attempt-text={`Attempt ${attemptValue} out of ${totalQuestions} questions`}>
                       Attempt {attemptValue} out of {totalQuestions} questions
                     </div>
                   </div>
@@ -1504,19 +1500,21 @@ export default function AssignmentPage() {
                   )}
                   
                   {/* All questions are always displayed */}
-                  {section.questions?.map((q, qIdx) => {
-                    const questionKey = `${sectionIdx}-${qIdx}`;
-                    return (
-                      <div key={qIdx} className="mb-2">
-                        {renderQuestionContent(q, questionKey)}
-                      </div>
-                    );
-                  })}
+                  <div className="questions-container">
+                    {section.questions?.map((q, qIdx) => {
+                      const questionKey = `${sectionIdx}-${qIdx}`;
+                      return (
+                        <div key={qIdx} className="mb-2 question-item">
+                          {renderQuestionContent(q, questionKey)}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
 
-            <div className="text-center text-[10px] text-gray-400 mt-4 pt-2">
+            <div className="text-center text-[10px] text-gray-400 mt-4 pt-2 footer-text">
               Best of Luck!
             </div>
           </div>
