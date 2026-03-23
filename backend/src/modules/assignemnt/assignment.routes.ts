@@ -14,8 +14,10 @@ const router = express.Router();
 
 router.post("/", validate(createAssignmentSchema), createAssignmentController);
 
+router.post("/:id/regenerate",authMiddleware,regenerateAssignmentController);
+
 router.get("/:id", getAssignmentController);
 
-router.post("/:id/regenerate",authMiddleware,regenerateAssignmentController);
+
 
 export default router;
