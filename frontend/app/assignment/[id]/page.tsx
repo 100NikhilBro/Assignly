@@ -3118,7 +3118,6 @@
 //   return null;
 // }
 
-
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -3194,6 +3193,7 @@ export default function AssignmentPage() {
   const [showDifficulty, setShowDifficulty] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedMCQs, setExpandedMCQs] = useState<Set<string>>(new Set());
+  const [sectionLimits, setSectionLimits] = useState<Record<string, string>>({});
   
   const pdfRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -3410,6 +3410,25 @@ export default function AssignmentPage() {
       }
       return newSet;
     });
+  };
+
+  const handleLimitChange = (sectionTitle: string, value: string) => {
+    setSectionLimits(prev => ({ ...prev, [sectionTitle]: value }));
+  };
+
+  const applyLimit = (sectionTitle: string) => {
+    const limit = sectionLimits[sectionTitle];
+    if (!limit || limit === "all") {
+      toast.success(`Showing all questions in ${sectionTitle}`);
+      return;
+    }
+    
+    const numLimit = parseInt(limit);
+    if (!isNaN(numLimit) && numLimit > 0) {
+      toast.success(`Showing ${numLimit} questions in ${sectionTitle}`);
+    } else {
+      toast.error("Please enter a valid number or 'all'");
+    }
   };
 
   const getSectionDescription = (title: string) => {
@@ -3713,7 +3732,7 @@ export default function AssignmentPage() {
             </div>
           </div>
 
-          {/* Question Paper - Pure Black & White, No Icons, No Colors */}
+          {/* Question Paper - Pure Black & White */}
           <div
             ref={pdfRef}
             className="bg-white text-black print-container shadow-lg rounded-lg border border-gray-200"
@@ -3776,23 +3795,52 @@ export default function AssignmentPage() {
             {/* QUESTION SECTIONS */}
             {fixedSections.map((section, sectionIdx) => {
               const sectionDescription = getSectionDescription(section.title);
+              const totalQuestions = section.questions?.length || 0;
               
               return (
                 <div key={sectionIdx} className="mb-3">
                   <div className="mb-1">
-                    <h2 className="text-center text-base font-bold uppercase tracking-wide">
-                      {section.title}
-                    </h2>
-                    {sectionDescription && (
-                      <p className="text-center text-xs italic mt-0.5">
-                        {sectionDescription}
-                      </p>
-                    )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h2 className="text-center text-base font-bold uppercase tracking-wide">
+                          {section.title}
+                        </h2>
+                        {sectionDescription && (
+                          <p className="text-center text-xs italic mt-0.5">
+                            {sectionDescription}
+                          </p>
+                        )}
+                      </div>
+                      
+                      {/* Question Limit Input - Desktop Only */}
+                      <div className="hidden sm:block ml-4 no-print">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={sectionLimits[section.title] || ''}
+                            onChange={(e) => handleLimitChange(section.title, e.target.value)}
+                            placeholder={`${totalQuestions} total`}
+                            className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
+                          />
+                          <button
+                            onClick={() => applyLimit(section.title)}
+                            className="px-2 py-1 text-xs bg-gray-100 text-gray-700 border border-gray-300 rounded hover:bg-gray-200 transition"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
                   <p className="text-center text-[10px] italic mb-2">
                     {section.instruction}
                   </p>
+                  
+                  {/* Mobile total questions info */}
+                  <div className="sm:hidden text-center text-[10px] text-gray-500 mb-1">
+                    Total Questions: {totalQuestions}
+                  </div>
                   
                   {section.questions?.map((q, qIdx) => {
                     const questionKey = `${sectionIdx}-${qIdx}`;
