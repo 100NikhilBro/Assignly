@@ -1141,7 +1141,7 @@ export const createAssignmentController = async (req: Request, res: Response) =>
 // =========================
 export const regenerateAssignmentController = async (req: Request, res: Response) => {
   try {
-    const assignmentId = req.params.id;
+    const assignmentId = req.params.id as string;
     const user = (req as any).user;
 
     if (!user) {
@@ -1213,7 +1213,7 @@ export const regenerateAssignmentController = async (req: Request, res: Response
 // =========================
 export const getAssignmentController = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id;
+    const id = req.params.id as string;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
