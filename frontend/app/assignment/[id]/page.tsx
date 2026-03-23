@@ -3591,7 +3591,7 @@ export default function AssignmentPage() {
     
     const fixedSections = paper.sections?.map(section => ({
       ...section,
-      instruction: section.instruction || "Attempt all questions"
+      instruction: section.instruction || ""
     })) || [];
     
     return (
@@ -3810,53 +3810,46 @@ export default function AssignmentPage() {
               return (
                 <div key={sectionIdx} className="mb-4">
                   <div className="mb-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h2 className="text-center text-lg font-bold uppercase tracking-wide">
-                          {section.title}
-                        </h2>
-                        {sectionDescription && (
-                          <p className="text-center text-xs italic mt-0.5 text-gray-600">
-                            {sectionDescription}
-                          </p>
-                        )}
-                      </div>
-                      
-                      {/* Question Limit Input - Desktop Only */}
-                      <div className="hidden sm:block ml-4 no-print">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">Attempt:</span>
-                          <input
-                            type="text"
-                            value={tempLimits[section.title] || ''}
-                            onChange={(e) => handleTempLimitChange(section.title, e.target.value)}
-                            placeholder={`${displayLimit}/${totalQuestions}`}
-                            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
-                          />
-                          <button
-                            onClick={() => applyLimit(section.title)}
-                            className="px-2 py-1 text-xs bg-gray-100 text-gray-700 border border-gray-300 rounded hover:bg-gray-200 transition"
-                          >
-                            Apply
-                          </button>
-                        </div>
+                    <h2 className="text-center text-lg font-bold uppercase tracking-wide">
+                      {section.title}
+                    </h2>
+                    {sectionDescription && (
+                      <p className="text-center text-xs italic mt-0.5 text-gray-600">
+                        {sectionDescription}
+                      </p>
+                    )}
+                    
+                    {/* Centered Attempt Display - Desktop Only */}
+                    <div className="hidden sm:flex justify-center mt-2 no-print">
+                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
+                        <span className="text-xs text-gray-600">Attempt:</span>
+                        <input
+                          type="text"
+                          value={tempLimits[section.title] || ''}
+                          onChange={(e) => handleTempLimitChange(section.title, e.target.value)}
+                          placeholder={`${displayLimit}/${totalQuestions}`}
+                          className="w-16 px-2 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-center"
+                        />
+                        <button
+                          onClick={() => applyLimit(section.title)}
+                          className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 border border-gray-300 rounded hover:bg-gray-200 transition"
+                        >
+                          Apply
+                        </button>
                       </div>
                     </div>
                     
-                    {/* Show current limit on desktop */}
-                    <div className="hidden sm:block text-right text-[10px] text-gray-400 mt-1">
+                    {/* Show current limit info */}
+                    <div className="hidden sm:block text-center text-[10px] text-gray-400 mt-1">
                       Showing {displayLimit} of {totalQuestions} questions
                     </div>
                   </div>
                   
-                  <p className="text-center text-[10px] italic text-gray-500 mb-3">
-                    {section.instruction}
-                  </p>
-                  
-                  {/* Mobile total questions info */}
-                  <div className="sm:hidden text-center text-[10px] text-gray-500 mb-2">
-                    Total Questions: {totalQuestions}
-                  </div>
+                  {section.instruction && (
+                    <p className="text-center text-[10px] italic text-gray-500 mb-3">
+                      {section.instruction}
+                    </p>
+                  )}
                   
                   {filteredQuestions.map((q, qIdx) => {
                     const questionKey = `${sectionIdx}-${qIdx}`;
