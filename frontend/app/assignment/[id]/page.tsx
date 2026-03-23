@@ -3841,13 +3841,13 @@ export default function AssignmentPage() {
                     
                     {/* Show current limit info */}
                     <div className="hidden sm:block text-center text-[10px] text-gray-400 mt-1">
-                      Showing {displayLimit} of {totalQuestions} questions
+                      Attempt the {displayLimit} of {totalQuestions} questions
                     </div>
                   </div>
                   
                   {section.instruction && (
                     <p className="text-center text-[10px] italic text-gray-500 mb-3">
-                      {section.instruction}
+                      {/* /* {section.instruction} */ */}
                     </p>
                   )}
                   
