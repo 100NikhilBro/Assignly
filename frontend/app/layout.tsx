@@ -153,7 +153,7 @@ export default function RootLayout({
         <meta property="og:description" content="Create structured exam papers with AI in seconds" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <title>Assignly - Forge Better Assignments</title>
+        <title>Assignly - Craft smarter assignments</title>
       </head>
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         <GoogleOAuthProvider
