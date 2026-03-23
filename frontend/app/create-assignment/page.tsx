@@ -1806,7 +1806,6 @@
 
 
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -1822,7 +1821,7 @@ import {
   Star, 
   Loader2, 
   AlertCircle,
-  BookOpen, 
+  BookOpen,
   Target,
   Sparkles,
   Clock,
@@ -2217,17 +2216,15 @@ export default function CreateAssignmentPage() {
                   >
                     <ShieldAlert className="w-4 h-4 text-gray-400 cursor-help hover:text-amber-500 transition-colors" />
                     {showHackTooltip && (
-                      <div className="absolute right-0 bottom-full mb-2 w-80 bg-gray-900 text-white text-xs rounded-lg py-3 px-4 z-50 shadow-xl border border-gray-700">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Zap className="w-4 h-4 text-amber-400" />
+                      <div className="absolute right-0 bottom-full mb-2 w-72 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 z-50 shadow-lg border border-gray-700">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Zap className="w-3.5 h-3.5 text-amber-400" />
                           <p className="font-semibold text-amber-400 text-xs">Pro Hack</p>
                         </div>
-                        <p className="mb-2 leading-relaxed">
-                          Set total marks higher than your actual requirement. Then use the <span className="font-mono bg-gray-800 px-1.5 py-0.5 rounded text-amber-300 text-[10px]">"Attempt X"</span> option on the assignment page to select specific questions and get exactly the marks you need!
+                        <p className="mb-1 leading-relaxed">
+                          Set total marks higher than your actual requirement. Then use the <span className="font-mono bg-gray-800 px-1 rounded text-amber-300">"Attempt X"</span> option on the assignment page to select specific questions and get exactly the marks you need!
                         </p>
-                        <div className="bg-gray-800 rounded-md p-2 mt-2">
-                          <p className="text-gray-300 text-[10px] font-mono">Example: Set 60 marks → attempt 30 marks worth questions → Get 30 marks paper</p>
-                        </div>
+                        <p className="text-gray-400 text-[10px] mt-1">Example: Set 60 marks → attempt 30 marks worth questions → Get 30 marks paper</p>
                         <div className="absolute right-2 -bottom-1 w-2 h-2 bg-gray-900 rotate-45 border-r border-b border-gray-700"></div>
                       </div>
                     )}
@@ -2381,7 +2378,7 @@ export default function CreateAssignmentPage() {
               </label>
               
               {/* Include answer key - Hidden completely */}
-              {/* <label className="flex items-center gap-2 sm:gap-3 cursor-pointer hidden">
+              {/* <label className="flex items-center gap-2 sm:gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   name="includeAnswers"
