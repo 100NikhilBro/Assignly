@@ -1,236 +1,178 @@
-<!-- ========================== INTRODUCTION ========================== -->
-
-<h1 align="center">🧠 Assignly</h1>
+# 🧠 Assignly
 
 <p align="center">
-  <strong>AI-powered Assessment Creator with structured generation, validation, and real-time processing</strong>
+  <strong>AI-powered Assessment Creator with Structured Generation, Validation & Real-Time Processing</strong>
 </p>
 
 <p align="center">
-  Assignly enables teachers to generate high-quality, exam-ready question papers using AI — with strict backend validation, structured formatting, and real-time feedback.  
-  Unlike basic AI apps, it enforces a **robust processing pipeline (parse → validate → normalize)** ensuring reliable and production-grade outputs.
-</p>
-
-<hr/>
-
-<!-- ========================== SCREENSHOTS ========================== -->
-
-<h2>📸 Screenshots</h2>
-
-<p align="center">
-  <img src="YOUR_CREATE_PAGE_IMAGE" alt="Create Assignment" width="45%" />
-  <img src="YOUR_DASHBOARD_IMAGE" alt="Dashboard" width="45%" />
-</p>
-
-<p align="center">
-  <img src="YOUR_OUTPUT_IMAGE" alt="Generated Paper" width="60%" />
+  Generate exam-ready question papers using AI — backed by validation pipelines, async processing, and real-time updates.
 </p>
 
 ---
 
-<!-- ========================== TECH STACK ========================== -->
+## 🚀 Overview
 
-<h2>🛠️ Tech Stack</h2>
+Assignly is a production-grade AI system that ensures generated content is:
 
-<table>
-  <thead>
-    <tr>
-      <th align="left">Layer</th>
-      <th align="left">Technologies</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Frontend</strong></td>
-      <td>Next.js, TypeScript, Tailwind CSS, Framer Motion, Lucide Icons</td>
-    </tr>
-    <tr>
-      <td><strong>State Management</strong></td>
-      <td>Zustand</td>
-    </tr>
-    <tr>
-      <td><strong>Backend</strong></td>
-      <td>Node.js, Express, TypeScript</td>
-    </tr>
-    <tr>
-      <td><strong>Database</strong></td>
-      <td>MongoDB (Assignment storage)</td>
-    </tr>
-    <tr>
-      <td><strong>Cache & Queue</strong></td>
-      <td>Redis + BullMQ</td>
-    </tr>
-    <tr>
-      <td><strong>Real-Time</strong></td>
-      <td>WebSocket</td>
-    </tr>
-    <tr>
-      <td><strong>AI</strong></td>
-      <td>Gemini / LLM + Custom Prompt Engineering</td>
-    </tr>
-    <tr>
-      <td><strong>Deployment</strong></td>
-      <td>Vercel (Frontend), Render (Backend), Upstash (Redis), MongoDB Atlas</td>
-    </tr>
-  </tbody>
-</table>
+* Structured
+* Validated
+* Reliable
+
+Pipeline:
+
+**Parse → Validate → Normalize → Store → Deliver**
 
 ---
 
-<!-- ========================== CORE FEATURES ========================== -->
+## 📄 Sample Output (PDF)
 
-<h2>✨ Core Features</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th align="left">Feature</th>
-      <th align="left">Description</th>
-      <th align="center">Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Assignment Creation</strong></td>
-      <td>Structured form with validation, concepts, difficulty control, and instructions</td>
-      <td align="center">✅</td>
-    </tr>
-    <tr>
-      <td><strong>AI Question Generation</strong></td>
-      <td>Generates structured sections, difficulty levels, and marks distribution</td>
-      <td align="center">✅</td>
-    </tr>
-    <tr>
-      <td><strong>Validation Pipeline</strong></td>
-      <td>Ensures AI output quality, removes invalid questions, enforces structure</td>
-      <td align="center">✅</td>
-    </tr>
-    <tr>
-      <td><strong>Background Processing</strong></td>
-      <td>BullMQ worker handles AI generation asynchronously</td>
-      <td align="center">✅</td>
-    </tr>
-    <tr>
-      <td><strong>Real-Time Updates</strong></td>
-      <td>WebSocket emits processing status (attempts, success, failure)</td>
-      <td align="center">✅</td>
-    </tr>
-    <tr>
-      <td><strong>Credit System</strong></td>
-      <td>Guest + user-based credit deduction system</td>
-      <td align="center">✅</td>
-    </tr>
-  </tbody>
-</table>
+* 📄 Sample Paper 1: https://drive.google.com/file/d/1oY42GvxsnvGZAqU4zBKAk52r3ARF-kHU/view?usp=sharing
+* 📄 Sample Paper 2: https://drive.google.com/file/d/10sPlg7DXI03NttIcJ0eub04n0q7KMz2O/view?usp=sharing
 
 ---
 
-<!-- ========================== SYSTEM ARCHITECTURE ========================== -->
-
-<h2>🏗️ System Architecture</h2>
+## 📸 Screenshots
 
 <p align="center">
-  <img src="YOUR_ARCHITECTURE_IMAGE" alt="System Architecture" width="85%" />
+  <img src="https://github.com/100NikhilBro/Assignly/blob/main/Screenshot%202026-03-23%20232905.png" width="45%" />
+  <img src="https://github.com/100NikhilBro/Assignly/blob/main/WhatsApp%20Image%202026-03-23%20at%2018.21.42.jpeg" width="45%" />
 </p>
 
-<ul>
-  <li>
-    <strong>Frontend:</strong> Next.js app handling UI, form state, and WebSocket subscriptions for live updates.
-  </li>
-
-  <li>
-    <strong>Backend:</strong> Express server using modular architecture (middleware → controller → service).
-  </li>
-
-  <li>
-    <strong>Queue System:</strong> BullMQ processes assignment generation asynchronously to avoid blocking API.
-  </li>
-
-  <li>
-    <strong>Worker:</strong> Handles AI calls, parsing, validation, normalization, and fallback logic.
-  </li>
-
-  <li>
-    <strong>Cache Layer:</strong> Redis stores assignment results and reduces repeated DB hits.
-  </li>
-
-  <li>
-    <strong>Database:</strong> MongoDB stores assignments, generated papers, and processing state.
-  </li>
-
-  <li>
-    <strong>Real-Time Layer:</strong> WebSocket emits status updates (processing, retry, completed).
-  </li>
-</ul>
+<p align="center">
+  <img src="https://github.com/100NikhilBro/Assignly/blob/main/WhatsApp%20Image%202026-03-23%20at%2018.21.43.jpeg" width="60%" />
+</p>
 
 ---
 
-<!-- ========================== AI PIPELINE ========================== -->
+## 🛠️ Tech Stack
 
-<h2>🧠 AI Processing Pipeline</h2>
-
-<ul>
-  <li><strong>Prompt Builder:</strong> Converts user input into structured exam prompt</li>
-  <li><strong>AI Generation:</strong> LLM generates question paper</li>
-  <li><strong>Parser:</strong> Extracts JSON safely (with repair fallback)</li>
-  <li><strong>Validator:</strong> Ensures question quality and structure</li>
-  <li><strong>Normalizer:</strong> Fixes duplicates, enforces marks & format</li>
-</ul>
-
-<p><strong>⚠️ Important:</strong> Raw AI output is NEVER rendered directly.</p>
+| Layer         | Technologies                      |
+| ------------- | --------------------------------- |
+| Frontend      | Next.js, TypeScript, Tailwind CSS |
+| Backend       | Node.js, Express, TypeScript      |
+| Database      | MongoDB Atlas                     |
+| Queue & Cache | Redis + BullMQ                    |
+| Real-Time     | WebSocket                         |
+| AI            | Gemini / LLM APIs                 |
+| Deployment    | Vercel, Render, Upstash           |
 
 ---
 
-<!-- ========================== MARKS ENGINE ========================== -->
+## ✨ Features
 
-<h2>📊 Marks Distribution Engine</h2>
-
-<ul>
-  <li>Dynamic ratio-based distribution (easy / medium / hard)</li>
-  <li>Weighted algorithm to match total marks</li>
-  <li>Tolerance-based acceptance system</li>
-</ul>
-
----
-
-<!-- ========================== RELIABILITY ========================== -->
-
-<h2>🛟 Reliability Features</h2>
-
-<ul>
-  <li>Retry mechanism (up to 3 attempts)</li>
-  <li>Validation-based rejection</li>
-  <li>Fallback paper generation if AI fails</li>
-  <li>Duplicate question handling</li>
-</ul>
+* AI-based question paper generation
+* Structured input with difficulty control
+* Validation pipeline for quality assurance
+* Background job processing (BullMQ)
+* Real-time updates via WebSockets
+* Credit-based usage system
 
 ---
 
-<!-- ========================== DEPLOYMENT ========================== -->
+## 🏗️ Architecture
 
-<h2>🚀 Deployment</h2>
+```mermaid
+flowchart LR
 
-<ul>
-  <li><strong>Frontend:</strong> Vercel</li>
-  <li><strong>Backend:</strong> Render</li>
-  <li><strong>Redis:</strong> Upstash</li>
-  <li><strong>Database:</strong> MongoDB Atlas</li>
-</ul>
+U[User] --> FE[Frontend]
+FE --> API[Backend]
 
----
+API --> Q[Queue]
+Q --> W[Worker]
 
-<!-- ========================== WHY IT'S ADVANCED ========================== -->
+W --> AI[LLM]
+AI --> PARSE[Parser]
+PARSE --> VALIDATE[Validator]
+VALIDATE --> NORMALIZE[Normalizer]
 
-<h2>💡 Why Assignly is Advanced</h2>
+NORMALIZE --> DB[(MongoDB)]
+NORMALIZE --> CACHE[(Redis)]
 
-<ul>
-  <li>Does NOT rely blindly on AI output</li>
-  <li>Implements full validation + normalization pipeline</li>
-  <li>Uses queue-based architecture (BullMQ)</li>
-  <li>Real-time feedback system via WebSockets</li>
-  <li>Production-ready backend with retry & fallback logic</li>
-</ul>
+W --> WS[WebSocket]
+WS --> FE
+```
 
 ---
 
-<p align="center">Made with ❤️ by <strong>Nikhil Gupta</strong></p>
+## 🔄 Flow
+
+1. User submits assignment
+2. API queues job
+3. Worker processes (AI → validate → normalize)
+4. Data stored + cached
+5. Real-time updates sent
+6. Frontend fetches result
+
+---
+
+## 🧠 AI Pipeline
+
+* Prompt Builder → structured input
+* AI Generation → question paper
+* Parser → JSON extraction
+* Validator → removes invalid data
+* Normalizer → fixes format & duplicates
+
+> Raw AI output is never shown directly.
+
+---
+
+## 📊 Marks Engine
+
+* Difficulty-based distribution
+* Weighted marks allocation
+* Ensures total consistency
+
+---
+
+## 🛟 Reliability
+
+* Retry mechanism (3 attempts)
+* Invalid output rejection
+* Fallback generation
+* Duplicate removal
+
+---
+
+## ⚡ Performance
+
+* Redis caching
+* Async processing
+* Cache-first fetching
+
+---
+
+## 🚀 Deployment
+
+* Frontend: Vercel
+* Backend: Render
+* Redis: Upstash
+* Database: MongoDB Atlas
+
+---
+
+## 🔮 Future Improvements
+
+* 🧠 Improve AI accuracy with better validation & self-checking
+* 🧩 Advanced MCQs with explanations and difficulty control
+* 📄 PDF export with clean, exam-ready formatting
+
+---
+
+## 🤝 Contributing
+
+1. Fork repo
+2. Create branch
+3. Open PR
+
+---
+
+## 📄 License
+
+MIT
+
+---
+
+<p align="center">
+  Made by <strong>Nikhil Gupta</strong>
+</p>
