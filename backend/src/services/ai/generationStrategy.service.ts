@@ -1,15 +1,13 @@
-// =========================
-// 🎯 ADVANCED DISTRIBUTION
-// =========================
+
 export const getAdvancedDistribution = (totalMarks: number) => {
-  // realistic exam marking pattern
+
   const marksPool = {
     easy: [1, 2],       // short answer
     medium: [3, 4],     // medium answer
     hard: [5, 6],       // long + analytical
   };
 
-  // weight distribution (realistic)
+
   const weights = {
     easy: 1.9,
     medium: 2.7,
@@ -31,7 +29,7 @@ export const getAdvancedDistribution = (totalMarks: number) => {
 };
 
 // =========================
-// 📚 SECTION BUILDER (A, B, C, D)
+// SECTION BUILDER (A, B, C, D)
 // =========================
 export const buildSectionsFromStrategy = () => {
   return [
@@ -88,9 +86,7 @@ STRICT RULES:
   );
 };
 
-// =========================
-// 🎲 RANDOM MARK PICKER (REALISTIC)
-// =========================
+
 export const getRandomMarkFromRange = (range: number[]) => {
   const index = Math.floor(Math.random() * range.length);
   return range[index];
