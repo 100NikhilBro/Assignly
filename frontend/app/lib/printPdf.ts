@@ -220,7 +220,6 @@
 //   }
 // };
 
-
 "use client";
 
 export const printPDF = (element: HTMLElement | null, title: string = "Assignment") => {
@@ -246,15 +245,15 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
           margin: 0;
           padding: 0;
           font-family: 'Times New Roman', Times, serif !important;
-          font-size: 12pt !important;
-          line-height: 1.4 !important;
+          font-size: 11pt !important;
+          line-height: 1.35 !important;
           background: white;
         }
         
-        /* Page margins - increased for better readability */
+        /* Page margins - standard exam paper margins */
         @page {
           size: A4;
-          margin: 0.8in 0.75in;
+          margin: 0.6in 0.7in;
         }
         
         /* Hide all interactive elements */
@@ -268,15 +267,15 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
           box-shadow: none !important;
         }
         
-        /* School Header - More spacing */
+        /* School Header - Standard spacing */
         h1 {
-          font-size: 20pt !important;
+          font-size: 18pt !important;
           font-weight: bold !important;
           text-align: center !important;
           text-transform: uppercase !important;
-          letter-spacing: 1px !important;
+          letter-spacing: 0.5px !important;
           margin-top: 0 !important;
-          margin-bottom: 48px !important;
+          margin-bottom: 32px !important;
           padding-bottom: 0 !important;
         }
         
@@ -284,7 +283,7 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
         .subject-class {
           display: flex !important;
           justify-content: space-between !important;
-          margin-bottom: 12px !important;
+          margin-bottom: 8px !important;
         }
         
         .subject-class p {
@@ -297,7 +296,7 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
         .time-marks {
           display: flex !important;
           justify-content: space-between !important;
-          margin-bottom: 20px !important;
+          margin-bottom: 16px !important;
         }
         
         .time-marks p {
@@ -309,15 +308,15 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
         .compulsory-text {
           font-size: 10pt !important;
           font-style: italic !important;
-          margin: 16px 0 20px 0 !important;
+          margin: 12px 0 16px 0 !important;
         }
         
         /* Student info section */
         .student-info-section {
           display: flex !important;
           flex-wrap: wrap !important;
-          gap: 32px !important;
-          margin: 24px 0 32px 0 !important;
+          gap: 28px !important;
+          margin: 20px 0 28px 0 !important;
         }
         
         .student-info-section span {
@@ -333,7 +332,7 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
         
         /* General instructions section */
         .general-instructions {
-          margin: 24px 0 28px 0 !important;
+          margin: 20px 0 24px 0 !important;
         }
         
         .general-instructions h3 {
@@ -341,7 +340,7 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
           font-weight: bold !important;
           text-transform: uppercase !important;
           letter-spacing: 0.5px !important;
-          margin-bottom: 8px !important;
+          margin-bottom: 6px !important;
         }
         
         .general-instructions ul {
@@ -350,30 +349,30 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
         
         .general-instructions li {
           font-size: 10pt !important;
-          margin: 4px 0 !important;
+          margin: 3px 0 !important;
           line-height: 1.3 !important;
         }
         
         .general-instructions p {
           font-size: 10pt !important;
-          margin-top: 8px !important;
+          margin-top: 6px !important;
           margin-left: 0 !important;
         }
         
         /* Section containers */
         .section-container {
-          margin-bottom: 32px !important;
+          margin-bottom: 28px !important;
           page-break-inside: avoid !important;
         }
         
         /* Section titles */
         .section-title {
-          font-size: 14pt !important;
+          font-size: 13pt !important;
           font-weight: bold !important;
           text-align: center !important;
           text-transform: uppercase !important;
-          letter-spacing: 1px !important;
-          margin: 24px 0 8px 0 !important;
+          letter-spacing: 0.5px !important;
+          margin: 20px 0 6px 0 !important;
         }
         
         /* Section description */
@@ -381,7 +380,7 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
           font-size: 10pt !important;
           font-style: italic !important;
           text-align: center !important;
-          margin: 4px 0 12px 0 !important;
+          margin: 2px 0 10px 0 !important;
           color: #4a5568 !important;
         }
         
@@ -396,24 +395,24 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
           font-style: italic !important;
           text-align: center !important;
           color: #666 !important;
-          margin: 8px 0 16px 0 !important;
+          margin: 6px 0 14px 0 !important;
         }
         
         /* Questions container */
         .questions-container {
-          margin-top: 8px !important;
+          margin-top: 6px !important;
         }
         
         /* Individual question */
         .question-item {
-          margin-bottom: 16px !important;
+          margin-bottom: 14px !important;
           page-break-inside: avoid !important;
         }
         
         /* Question text */
         .question-text {
           font-size: 11pt !important;
-          line-height: 1.4 !important;
+          line-height: 1.35 !important;
         }
         
         .question-number {
@@ -429,12 +428,12 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
         
         /* MCQ Options */
         .mcq-options {
-          margin: 8px 0 4px 28px !important;
+          margin: 6px 0 2px 28px !important;
         }
         
         .mcq-option {
           font-size: 10pt !important;
-          margin: 4px 0 !important;
+          margin: 3px 0 !important;
           display: flex !important;
           align-items: flex-start !important;
           gap: 8px !important;
@@ -447,11 +446,11 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
         
         /* Fill in blanks */
         .fill-blanks {
-          margin: 8px 0 4px 28px !important;
+          margin: 6px 0 2px 28px !important;
         }
         
         .fill-blank-item {
-          margin: 6px 0 !important;
+          margin: 4px 0 !important;
           display: flex !important;
           align-items: center !important;
           gap: 8px !important;
@@ -468,13 +467,13 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
           font-size: 9pt !important;
           font-style: italic !important;
           color: #666 !important;
-          margin: 4px 0 0 28px !important;
+          margin: 2px 0 0 28px !important;
         }
         
         /* Answer space */
         .answer-space {
-          margin: 8px 0 0 28px !important;
-          height: 20px !important;
+          margin: 6px 0 0 28px !important;
+          height: 18px !important;
         }
         
         /* Footer */
@@ -482,8 +481,8 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
           font-size: 9pt !important;
           text-align: center !important;
           color: #666 !important;
-          margin-top: 32px !important;
-          padding-top: 16px !important;
+          margin-top: 28px !important;
+          padding-top: 12px !important;
           border-top: 1px solid #ddd !important;
         }
         
@@ -578,6 +577,14 @@ export const printPDF = (element: HTMLElement | null, title: string = "Assignmen
   // Remove any interactive elements that shouldn't print
   const interactiveElements = printContent.querySelectorAll('button, .no-print, .attempt-info');
   interactiveElements.forEach(el => el.remove());
+  
+  // Remove the "Attempt X of Y questions" text from sections
+  const attemptInfoText = printContent.querySelectorAll('.attempt-info-text, .text-gray-400');
+  attemptInfoText.forEach(el => {
+    if (el.textContent?.includes('Attempt') || el.textContent?.includes('Showing')) {
+      el.remove();
+    }
+  });
 
   const printWindow = window.open('', '_blank');
   if (printWindow) {
