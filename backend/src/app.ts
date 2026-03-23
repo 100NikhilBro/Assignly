@@ -30,10 +30,10 @@ app.use(
   })
 ));
 
-
+// Fix wildcard path
 app.options("/*", cors());
 
-app.use(helmetConfig); 
+app.use(helmetConfig);
 app.use(morgan("dev"));
 app.use(express.json());
 
