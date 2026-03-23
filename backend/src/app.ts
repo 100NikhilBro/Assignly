@@ -9,7 +9,7 @@ const app: Application = express();
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://assignly-nikhil100.vercel.app", 
+  "https://assignly-nikhil100.vercel.app",
 ];
 
 app.use(
@@ -28,22 +28,19 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
-);
+));
 
 
-app.options("*", cors());
-
+app.options("/*", cors());
 
 app.use(helmetConfig); 
 app.use(morgan("dev"));
 app.use(express.json());
 
-
-
 app.use("/api", routes);
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Backend is running ");
+  res.send("Backend is running");
 });
 
 export default app;
