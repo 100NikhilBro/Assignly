@@ -3846,8 +3846,8 @@ export default function AssignmentPage() {
                   </div>
                   
                   {section.instruction && (
-                    <p className="text-center text-[10px] italic text-gray-500 mb-3">
-                      {/* /* {section.instruction} */ */}
+                    <p className="text-center text-[10px] italic text-gray-500 mb-3 hidden">
+                       {section.instruction} 
                     </p>
                   )}
                   
