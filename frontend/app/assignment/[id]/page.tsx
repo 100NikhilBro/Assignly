@@ -3193,7 +3193,8 @@ export default function AssignmentPage() {
   const [showDifficulty, setShowDifficulty] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedMCQs, setExpandedMCQs] = useState<Set<string>>(new Set());
-  const [sectionLimits, setSectionLimits] = useState<Record<string, string>>({});
+  const [sectionLimits, setSectionLimits] = useState<Record<string, number | 'all'>>({});
+  const [tempLimits, setTempLimits] = useState<Record<string, string>>({});
   
   const pdfRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -3412,22 +3413,23 @@ export default function AssignmentPage() {
     });
   };
 
-  const handleLimitChange = (sectionTitle: string, value: string) => {
-    setSectionLimits(prev => ({ ...prev, [sectionTitle]: value }));
+  const handleTempLimitChange = (sectionTitle: string, value: string) => {
+    setTempLimits(prev => ({ ...prev, [sectionTitle]: value }));
   };
 
   const applyLimit = (sectionTitle: string) => {
-    const limit = sectionLimits[sectionTitle];
-    if (!limit || limit === "all") {
+    const value = tempLimits[sectionTitle];
+    if (!value || value === "all") {
+      setSectionLimits(prev => ({ ...prev, [sectionTitle]: 'all' }));
       toast.success(`Showing all questions in ${sectionTitle}`);
-      return;
-    }
-    
-    const numLimit = parseInt(limit);
-    if (!isNaN(numLimit) && numLimit > 0) {
-      toast.success(`Showing ${numLimit} questions in ${sectionTitle}`);
     } else {
-      toast.error("Please enter a valid number or 'all'");
+      const numLimit = parseInt(value);
+      if (!isNaN(numLimit) && numLimit > 0) {
+        setSectionLimits(prev => ({ ...prev, [sectionTitle]: numLimit }));
+        toast.success(`Showing ${numLimit} questions in ${sectionTitle}`);
+      } else {
+        toast.error("Please enter a valid number or 'all'");
+      }
     }
   };
 
@@ -3440,6 +3442,11 @@ export default function AssignmentPage() {
       return "Critical Thinking Questions";
     }
     return "";
+  };
+
+  const getFilteredQuestions = (questions: Question[], limit: number | 'all' | undefined) => {
+    if (!limit || limit === 'all') return questions;
+    return questions.slice(0, limit);
   };
 
   const renderQuestionContent = (q: Question, questionKey: string) => {
@@ -3745,10 +3752,10 @@ export default function AssignmentPage() {
               margin: '0 auto'
             }}
           >
-            {/* TOP SECTION */}
-            <div className="mb-3">
+            {/* TOP SECTION - School Header with extra spacing */}
+            <div className="mb-8">
               {assignment.schoolName && (
-                <h1 className="text-center text-2xl font-bold uppercase tracking-wide mb-4">
+                <h1 className="text-center text-3xl font-bold uppercase tracking-wide mb-12 text-black">
                   {assignment.schoolName}
                 </h1>
               )}
@@ -3763,24 +3770,24 @@ export default function AssignmentPage() {
                 <p>Maximum Marks: {assignment.totalMarks}</p>
               </div>
               
-              <div className="my-2"></div>
+              <div className="my-3"></div>
               
               <p className="text-xs italic">
                 All questions are compulsory unless stated otherwise.
               </p>
               
-              <div className="my-2"></div>
+              <div className="my-3"></div>
               
-              <div className="flex flex-wrap gap-4 text-xs">
-                <span>Name: <span className="border-b border-black inline-block w-32 ml-1"></span></span>
-                <span>Roll Number: <span className="border-b border-black inline-block w-24 ml-1"></span></span>
-                <span>Section: <span className="border-b border-black inline-block w-16 ml-1"></span></span>
+              <div className="flex flex-wrap gap-6 text-xs">
+                <span>Name: <span className="border-b border-black inline-block w-40 ml-1"></span></span>
+                <span>Roll Number: <span className="border-b border-black inline-block w-32 ml-1"></span></span>
+                <span>Section: <span className="border-b border-black inline-block w-24 ml-1"></span></span>
               </div>
             </div>
 
             {/* GENERAL INSTRUCTIONS */}
-            <div className="mb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wide mb-0.5">
+            <div className="mb-4">
+              <h3 className="text-xs font-bold uppercase tracking-wide mb-1">
                 GENERAL INSTRUCTIONS:
               </h3>
               <div className="text-xs leading-relaxed space-y-0 ml-3">
@@ -3788,7 +3795,7 @@ export default function AssignmentPage() {
                 <p>2. Write your answers in the space provided.</p>
                 <p>3. Read each question carefully before answering.</p>
                 <p>4. Marks are indicated against each question.</p>
-                <p className="mt-0.5">{paper.instructions}</p>
+                <p className="mt-1">{paper.instructions}</p>
               </div>
             </div>
 
@@ -3796,17 +3803,20 @@ export default function AssignmentPage() {
             {fixedSections.map((section, sectionIdx) => {
               const sectionDescription = getSectionDescription(section.title);
               const totalQuestions = section.questions?.length || 0;
+              const limit = sectionLimits[section.title];
+              const filteredQuestions = getFilteredQuestions(section.questions || [], limit);
+              const displayLimit = limit === 'all' ? totalQuestions : (limit || totalQuestions);
               
               return (
-                <div key={sectionIdx} className="mb-3">
-                  <div className="mb-1">
+                <div key={sectionIdx} className="mb-4">
+                  <div className="mb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h2 className="text-center text-base font-bold uppercase tracking-wide">
+                        <h2 className="text-center text-lg font-bold uppercase tracking-wide">
                           {section.title}
                         </h2>
                         {sectionDescription && (
-                          <p className="text-center text-xs italic mt-0.5">
+                          <p className="text-center text-xs italic mt-0.5 text-gray-600">
                             {sectionDescription}
                           </p>
                         )}
@@ -3815,12 +3825,13 @@ export default function AssignmentPage() {
                       {/* Question Limit Input - Desktop Only */}
                       <div className="hidden sm:block ml-4 no-print">
                         <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">Attempt:</span>
                           <input
                             type="text"
-                            value={sectionLimits[section.title] || ''}
-                            onChange={(e) => handleLimitChange(section.title, e.target.value)}
-                            placeholder={`${totalQuestions} total`}
-                            className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
+                            value={tempLimits[section.title] || ''}
+                            onChange={(e) => handleTempLimitChange(section.title, e.target.value)}
+                            placeholder={`${displayLimit}/${totalQuestions}`}
+                            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
                           />
                           <button
                             onClick={() => applyLimit(section.title)}
@@ -3831,18 +3842,23 @@ export default function AssignmentPage() {
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Show current limit on desktop */}
+                    <div className="hidden sm:block text-right text-[10px] text-gray-400 mt-1">
+                      Showing {displayLimit} of {totalQuestions} questions
+                    </div>
                   </div>
                   
-                  <p className="text-center text-[10px] italic mb-2">
+                  <p className="text-center text-[10px] italic text-gray-500 mb-3">
                     {section.instruction}
                   </p>
                   
                   {/* Mobile total questions info */}
-                  <div className="sm:hidden text-center text-[10px] text-gray-500 mb-1">
+                  <div className="sm:hidden text-center text-[10px] text-gray-500 mb-2">
                     Total Questions: {totalQuestions}
                   </div>
                   
-                  {section.questions?.map((q, qIdx) => {
+                  {filteredQuestions.map((q, qIdx) => {
                     const questionKey = `${sectionIdx}-${qIdx}`;
                     return (
                       <div key={qIdx} className="mb-2">
@@ -3854,7 +3870,7 @@ export default function AssignmentPage() {
               );
             })}
 
-            <div className="text-center text-[10px] mt-2 pt-1">
+            <div className="text-center text-[10px] text-gray-400 mt-4 pt-2">
               Best of Luck!
             </div>
           </div>
