@@ -757,6 +757,8 @@
 
 
 
+
+
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -832,6 +834,8 @@ export default function AssignmentPage() {
   const [showDifficulty, setShowDifficulty] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedMCQs, setExpandedMCQs] = useState<Set<string>>(new Set());
+  const [sectionAttempts, setSectionAttempts] = useState<Record<string, number>>({});
+  const [tempAttempts, setTempAttempts] = useState<Record<string, string>>({});
   
   const pdfRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -845,6 +849,22 @@ export default function AssignmentPage() {
 
       const data = response.data.data;
       setAssignment(data);
+      
+      // Initialize attempts for each section (default to total questions)
+      if (data.paper?.sections) {
+        const initialAttempts: Record<string, number> = {};
+        data.paper.sections.forEach((section: Section) => {
+          initialAttempts[section.title] = section.questions?.length || 0;
+        });
+        setSectionAttempts(initialAttempts);
+        
+        // Initialize temp attempts
+        const initialTemp: Record<string, string> = {};
+        data.paper.sections.forEach((section: Section) => {
+          initialTemp[section.title] = String(section.questions?.length || 0);
+        });
+        setTempAttempts(initialTemp);
+      }
 
       switch (data.status) {
         case "pending":
@@ -1046,6 +1066,32 @@ export default function AssignmentPage() {
       }
       return newSet;
     });
+  };
+
+  const handleTempAttemptChange = (sectionTitle: string, value: string) => {
+    setTempAttempts(prev => ({ ...prev, [sectionTitle]: value }));
+  };
+
+  const applyAttempt = (sectionTitle: string, totalQuestions: number) => {
+    const value = tempAttempts[sectionTitle];
+    if (!value) {
+      toast.error("Please enter a number");
+      return;
+    }
+    
+    const numAttempt = parseInt(value);
+    if (isNaN(numAttempt) || numAttempt < 0) {
+      toast.error("Please enter a valid number");
+      return;
+    }
+    
+    if (numAttempt > totalQuestions) {
+      toast.error(`Cannot attempt more than ${totalQuestions} questions`);
+      return;
+    }
+    
+    setSectionAttempts(prev => ({ ...prev, [sectionTitle]: numAttempt }));
+    toast.success(`Set to attempt ${numAttempt} out of ${totalQuestions} questions in ${sectionTitle}`);
   };
 
   const getSectionDescription = (title: string) => {
@@ -1382,10 +1428,6 @@ export default function AssignmentPage() {
               
               <div className="my-3"></div>
               
-              <p className="text-xs italic">
-                All questions are compulsory unless stated otherwise.
-              </p>
-              
               <div className="my-3"></div>
               
               <div className="flex flex-wrap gap-6 text-xs">
@@ -1401,10 +1443,9 @@ export default function AssignmentPage() {
                 GENERAL INSTRUCTIONS:
               </h3>
               <div className="text-xs leading-relaxed space-y-0 ml-3">
-                <p>1. All questions are compulsory.</p>
-                <p>2. Write your answers in the space provided.</p>
-                <p>3. Read each question carefully before answering.</p>
-                <p>4. Marks are indicated against each question.</p>
+                <p>1. Write your answers in the space provided.</p>
+                <p>2. Read each question carefully before answering.</p>
+                <p>3. Marks are indicated against each question.</p>
                 <p className="mt-1">{paper.instructions}</p>
               </div>
             </div>
@@ -1413,6 +1454,7 @@ export default function AssignmentPage() {
             {fixedSections.map((section, sectionIdx) => {
               const sectionDescription = getSectionDescription(section.title);
               const totalQuestions = section.questions?.length || 0;
+              const attemptValue = sectionAttempts[section.title] || totalQuestions;
               
               return (
                 <div key={sectionIdx} className="mb-4">
@@ -1426,9 +1468,32 @@ export default function AssignmentPage() {
                       </p>
                     )}
                     
-                    {/* Show attempt information only - no input controls */}
-                    <div className="hidden sm:block text-center text-xs text-gray-500 mt-1 no-print">
-                      Attempt all {totalQuestions} questions
+                    {/* Dynamic Attempt Input - Shows "Attempt X out of Y" but doesn't hide questions */}
+                    <div className="flex justify-center mt-2 no-print">
+                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
+                        <span className="text-xs text-gray-600">Attempt:</span>
+                        <input
+                          type="number"
+                          value={tempAttempts[section.title] || ''}
+                          onChange={(e) => handleTempAttemptChange(section.title, e.target.value)}
+                          placeholder={String(totalQuestions)}
+                          className="w-16 px-2 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-center"
+                          min="0"
+                          max={totalQuestions}
+                        />
+                        <span className="text-xs text-gray-600">out of {totalQuestions}</span>
+                        <button
+                          onClick={() => applyAttempt(section.title, totalQuestions)}
+                          className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 border border-gray-300 rounded hover:bg-gray-200 transition"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Display current attempt info - No "Attempt all" or "Attempt any" text */}
+                    <div className="text-center text-xs text-gray-500 mt-1 no-print">
+                      Attempt {attemptValue} out of {totalQuestions} questions
                     </div>
                   </div>
                   
@@ -1438,6 +1503,7 @@ export default function AssignmentPage() {
                     </p>
                   )}
                   
+                  {/* All questions are always displayed */}
                   {section.questions?.map((q, qIdx) => {
                     const questionKey = `${sectionIdx}-${qIdx}`;
                     return (
