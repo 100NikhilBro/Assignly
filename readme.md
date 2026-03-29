@@ -122,41 +122,72 @@ This project follows a controlled AI execution approach:
 * Basic credit-based usage system
 
 ---
+# Assignly – System Architecture
 
-## 🏗️ Architecture
-
-```mermaid
-flowchart LR
-U[User] --> FE[Frontend]
-FE --> API[Backend]
-API --> Q[Queue]
-Q --> W[Worker]
-W --> AI[LLM]
-AI --> PARSE[Parser]
-PARSE --> VALIDATE[Validator]
-VALIDATE --> NORMALIZE[Normalizer]
-NORMALIZE --> DB[(MongoDB)]
-NORMALIZE --> CACHE[(Redis)]
-W --> WS[WebSocket]
-WS --> FE
-```
+## 🔗 Architecture Diagram
+![Assignly Architecture](https://drive.google.com/uc?export=view&id=13t-Ui6xOt-UQa0VmGp_7CEeuTKzwjtY8)
 
 ---
 
 ## 🔄 System Flow
 
-1. User submits assignment request
-2. Backend queues the job
-3. Worker processes:
+### 1. 🔐 User Authentication
+- Users log in via **Google OAuth**  
+- Backend generates a **JWT token**  
+- Token is used for all protected API requests
 
-   * AI generation
-   * Parsing
-   * Validation
-   * Normalization
-4. Data stored in database and cache
-5. WebSocket sends updates
-6. Frontend displays result
+### 2. 📩 Request Submission
+- Users submit assignment requests from the frontend  
+- Request passes through:
+  - **Auth Middleware**
+  - **Validation Middleware** (Zod)
 
+### 3. 🎯 Controller & Credit Check
+- Controller receives validated request  
+- System verifies user credits:  
+  - ❌ No credits → Prompt upgrade/login  
+  - ✅ Credits available → Proceed
+
+### 4. ⚙️ Service Layer Processing
+- Creates a **pending assignment** in MongoDB  
+- Pushes job to **Bull Queue** (Redis-based)
+
+### 5. 🧵 Queue & Worker Execution
+- Worker consumes job **asynchronously**  
+- Heavy processing handled **outside request-response cycle**
+
+### 6. 🤖 AI Generation Engine
+- AI (Gemini with fallback) generates the assignment  
+- Built-in **retry mechanism** on failure
+
+### 7. 🔍 Processing Pipeline
+- **Parsing** → Converts raw AI output into structured JSON  
+- **Validation** → Ensures correctness & completeness  
+- **Distribution Logic** → Verifies marks distribution & difficulty balance
+
+### 8. 💾 Data Persistence
+- Final assignment stored in **MongoDB**  
+- Cached in **Redis** for fast retrieval
+
+### 9. ⚡ Real-Time Updates
+- Worker emits events via **Socket.io**  
+- Frontend receives live updates:
+  - `processing`  
+  - `completed`
+
+### 10. ✅ Final Response
+- Frontend fetches final assignment  
+- Displays the **generated paper** to the user
+
+---
+
+## ⚡ Key Highlights
+- **Queue-based async processing** with Bull + Redis  
+- **AI fallback mechanism** for reliability  
+- **Real-time updates** via Socket.io  
+- **Credit-based access control**  
+- **Clean layered architecture** (Controller → Service → Worker)  
+- Designed to be **scalable and production-ready**
 ---
 
 ## 🧠 AI Processing Pipeline
