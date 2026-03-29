@@ -1634,6 +1634,18 @@ export default function CreateAssignmentPage() {
     }
   };
 
+
+  // adding this
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
   const getCurrentCredits = (): number => {
     if (user) return user.credits;
     if (guestCredits !== null) return guestCredits;
