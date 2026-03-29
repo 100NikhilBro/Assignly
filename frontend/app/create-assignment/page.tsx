@@ -86,8 +86,9 @@ const QUESTION_TYPES = [
 export default function CreateAssignmentPage() {
   const router = useRouter();
   const { user, updateCredits } = useUserStore();
-  const { isAuthenticated, token } = useAuth();
-  
+  // const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, isLoading } = useAuth(); // adding this NEW
+   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [conceptInput, setConceptInput] = useState("");
@@ -121,6 +122,14 @@ export default function CreateAssignmentPage() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+
+  // adding this --- NEW 
+  useEffect(() => {
+  if (!isLoading && !isAuthenticated) {
+    router.replace("/login");
+  }
+}, [isAuthenticated, isLoading]);
 
   //  SECURE: Fetch guest credits from backend only (no localStorage caching)
   useEffect(() => {
@@ -288,7 +297,7 @@ export default function CreateAssignmentPage() {
 
       const { id } = response.data.data;
 
-      // ✅ Update credits from backend response (single source of truth)
+      //  Update credits from backend response (single source of truth)
       if (response.data.creditsRemaining !== undefined) {
         if (user) {
           // Update logged-in user's credits in store
@@ -312,23 +321,22 @@ export default function CreateAssignmentPage() {
     }
   };
 
-
-  // adding this
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isAuthenticated]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   const getCurrentCredits = (): number => {
     if (user) return user.credits;
     if (guestCredits !== null) return guestCredits;
     return 3; // Default fallback
   };
+
+
+  // adding this also 
+  
+  if (isLoading) {
+  return <div>Loading...</div>;
+}
+
+if (!isAuthenticated) {
+  return null;
+}
 
   return (
     <div className="relative min-h-screen bg-[#fdfaf5] overflow-x-hidden">
