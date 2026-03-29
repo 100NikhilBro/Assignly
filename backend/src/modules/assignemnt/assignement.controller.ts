@@ -304,12 +304,21 @@ const getOrCreateGuestSession = (req: Request, res: Response): string => {
   if (!sessionId) {
     sessionId = `guest_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-    res.cookie("guestId", sessionId, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+    // res.cookie("guestId", sessionId, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: "strict",
+    //   maxAge: 24 * 60 * 60 * 1000,
+    // });
+
+
+  res.cookie("guestId", sessionId, {
+  httpOnly: true,
+  secure: true,       // REQUIRED for HTTPS (Vercel + Render)
+  sameSite: "none",   // 🔥 MUST for cross-domain
+  maxAge: 24 * 60 * 60 * 1000,
+});
+   
   }
 
   return sessionId;
