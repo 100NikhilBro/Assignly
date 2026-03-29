@@ -288,7 +288,6 @@
 
 
 
-
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import * as assignmentService from "./assignement.service";
@@ -300,9 +299,9 @@ import { createAssignmentSchema } from "../../schema/assignment.schema";
 import { Assignment } from "./assignment.model";
 import { getRedisConnection } from "../../config/redis";
 
-// Helper: get or create guest session (COOKIE BASED)
-const getOrCreateGuestSession = (req: Request, res: Response) => {
-  let sessionId = req.cookies?.guestId;
+// ✅ Helper: ALWAYS returns string (no null issue)
+const getOrCreateGuestSession = (req: Request, res: Response): string => {
+  let sessionId = req.cookies?.guestId as string | undefined;
 
   if (!sessionId) {
     sessionId = `guest_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -378,7 +377,7 @@ export const createAssignmentController = async (req: Request, res: Response) =>
         });
       }
 
-      // 🔥 deduct user credits
+      // 🔥 atomic-like deduct (safe enough for now)
       dbUser.credits -= 1;
       await dbUser.save();
 
@@ -407,6 +406,10 @@ export const createAssignmentController = async (req: Request, res: Response) =>
       userId: userId ? new mongoose.Types.ObjectId(userId) : null,
       guestSessionId: sessionId,
     });
+
+    // =========================
+    // ⚡ QUEUE JOB
+    // =========================
 
     await assignmentQueue.add(
       "generate-paper",
@@ -443,6 +446,10 @@ export const createAssignmentController = async (req: Request, res: Response) =>
   }
 };
 
+// =========================
+// 🔁 REGENERATE
+// =========================
+
 export const regenerateAssignmentController = async (req: Request, res: Response) => {
   try {
     const assignmentId = req.params.id as string;
@@ -473,7 +480,7 @@ export const regenerateAssignmentController = async (req: Request, res: Response
       });
     }
 
-    // 🔥 deduct credit here also
+    // 🔥 deduct credit
     dbUser.credits -= 1;
     await dbUser.save();
 
@@ -507,6 +514,10 @@ export const regenerateAssignmentController = async (req: Request, res: Response
   }
 };
 
+// =========================
+// 🎯 GUEST CREDITS
+// =========================
+
 export const getGuestCreditsController = async (req: Request, res: Response) => {
   try {
     const sessionId = getOrCreateGuestSession(req, res);
@@ -529,10 +540,6 @@ export const getGuestCreditsController = async (req: Request, res: Response) => 
     });
   }
 };
-
-
-
-
 
 
 
