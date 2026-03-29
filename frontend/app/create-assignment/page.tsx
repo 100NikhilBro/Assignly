@@ -672,7 +672,12 @@ import {
   Type,
   ChevronLeft,
   ShieldAlert,
-  Zap
+  Zap,
+  KeyRound,
+  PenTool,
+  AlignLeft,
+  CheckSquare,
+  Grid3X3
 } from "lucide-react";
 
 // 🔥 IMPORTANT: Always send cookies with requests
@@ -703,11 +708,11 @@ const DIFFICULTY_OPTIONS = [
 ];
 
 const QUESTION_TYPES = [
-  { value: "short", label: "Short Answer", icon: FileText },
-  { value: "long", label: "Long Answer", icon: BookMarked },
-  { value: "multiple choice", label: "MCQ", icon: ListChecks },
-  { value: "fill in blanks", label: "Fill in Blanks", icon: Type },
-  { value: "true false", label: "True/False", icon: CheckCircle }
+  { value: "short", label: "Short Answer", icon: FileText, description: "Brief concise answers" },
+  { value: "long", label: "Long Answer", icon: BookMarked, description: "Detailed explanations" },
+  { value: "multiple choice", label: "MCQ", icon: ListChecks, description: "Multiple choice questions" },
+  { value: "fill in blanks", label: "Fill in Blanks", icon: Type, description: "Complete the missing words" },
+  { value: "true false", label: "True/False", icon: CheckCircle, description: "True or false statements" }
 ];
 
 // Helper: Get or create guest session ID (only for guest users)
@@ -1169,38 +1174,49 @@ export default function CreateAssignmentPage() {
               </div>
             </div>
 
-            {/* Question Types - Hide MCQ */}
+            {/* Question Types - Full icons and labels */}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
                 <ListChecks className="w-4 h-4 text-amber-600" />
                 Question Types
               </label>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {QUESTION_TYPES.map((type) => {
-                  // Hide MCQ option completely
+                  // Hide MCQ option completely (can be enabled by removing this check)
                   if (type.value === "multiple choice") return null;
+                  
+                  const isSelected = form.questionTypes.includes(type.value);
+                  const Icon = type.icon;
                   
                   return (
                     <button
                       key={type.value}
                       onClick={() => handleQuestionTypeToggle(type.value)}
-                      className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition flex items-center gap-1.5 sm:gap-2 ${
-                        form.questionTypes.includes(type.value)
-                          ? "bg-amber-600 text-white"
-                          : "bg-amber-50 text-gray-600 hover:bg-amber-100 border border-amber-200"
+                      className={`p-3 rounded-xl border-2 transition-all text-left ${
+                        isSelected
+                          ? "border-amber-500 bg-amber-50 shadow-sm"
+                          : "border-amber-200 hover:border-amber-300 bg-[#fdfaf5] hover:bg-amber-50/30"
                       }`}
                     >
-                      <type.icon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      <span className="hidden xs:inline">{type.label}</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${isSelected ? "text-amber-600" : "text-amber-500"}`} />
+                        <span className={`font-medium text-sm sm:text-base ${isSelected ? "text-gray-900" : "text-gray-700"}`}>
+                          {type.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6 sm:ml-7">{type.description}</p>
                     </button>
                   );
                 })}
               </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Select question types for your assignment (MCQ option is currently disabled)
+              </p>
             </div>
 
-            {/* Options - Hide Include answer key */}
+            {/* Options - Hints and Passing marks */}
             <div className="space-y-2.5 sm:space-y-3">
-              <label className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+              <label className="flex items-center gap-2 sm:gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
                   name="includeHints"
@@ -1210,9 +1226,10 @@ export default function CreateAssignmentPage() {
                 />
                 <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
                 <span className="text-xs sm:text-sm text-gray-700">Include hints for tough questions</span>
+                <span className="text-xs text-gray-400 group-hover:text-gray-500 transition ml-1">(Helps students with difficult concepts)</span>
               </label>
               
-              <label className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+              <label className="flex items-center gap-2 sm:gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
                   name="ensurePassing"
@@ -1222,6 +1239,7 @@ export default function CreateAssignmentPage() {
                 />
                 <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
                 <span className="text-xs sm:text-sm text-gray-700">Ensure passing marks distribution</span>
+                <span className="text-xs text-gray-400 group-hover:text-gray-500 transition ml-1">(Balanced easy & tough questions)</span>
               </label>
             </div>
 
@@ -1248,7 +1266,7 @@ export default function CreateAssignmentPage() {
             <button
               onClick={handleSubmit}
               disabled={loading || getCurrentCredits() <= 0}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
             >
               {loading ? (
                 <>
