@@ -286,8 +286,6 @@
 //   }
 // };
 
-
-
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import * as assignmentService from "./assignement.service";
@@ -299,7 +297,7 @@ import { createAssignmentSchema } from "../../schema/assignment.schema";
 import { Assignment } from "./assignment.model";
 import { getRedisConnection } from "../../config/redis";
 
-// ✅ Helper: ALWAYS returns string (no null issue)
+// ✅ COOKIE BASED SESSION (secure)
 const getOrCreateGuestSession = (req: Request, res: Response): string => {
   let sessionId = req.cookies?.guestId as string | undefined;
 
@@ -317,6 +315,10 @@ const getOrCreateGuestSession = (req: Request, res: Response): string => {
   return sessionId;
 };
 
+// =========================
+// 🎯 CREATE ASSIGNMENT
+// =========================
+
 export const createAssignmentController = async (req: Request, res: Response) => {
   try {
     const parsed = createAssignmentSchema.safeParse(req.body);
@@ -332,14 +334,11 @@ export const createAssignmentController = async (req: Request, res: Response) =>
     const data = parsed.data;
     const user = (req as any).user;
 
-    let userId: string | null = null;
     let creditsRemaining = 0;
+    let userId: string | null = null;
     let sessionId: string | null = null;
 
-    // =========================
-    // 🔐 CREDIT CHECK + DEDUCT
-    // =========================
-
+    // 🔐 CREDIT LOGIC
     if (!user) {
       sessionId = getOrCreateGuestSession(req, res);
 
@@ -377,17 +376,13 @@ export const createAssignmentController = async (req: Request, res: Response) =>
         });
       }
 
-      // 🔥 atomic-like deduct (safe enough for now)
       dbUser.credits -= 1;
       await dbUser.save();
 
       creditsRemaining = dbUser.credits;
     }
 
-    // =========================
-    // 📦 CREATE ASSIGNMENT
-    // =========================
-
+    // 📦 CREATE
     const assignment = await assignmentService.createAssignment({
       ...data,
       schoolName: data.schoolName ? cleanText(data.schoolName) : "School Name",
@@ -407,10 +402,7 @@ export const createAssignmentController = async (req: Request, res: Response) =>
       guestSessionId: sessionId,
     });
 
-    // =========================
-    // ⚡ QUEUE JOB
-    // =========================
-
+    // ⚡ QUEUE
     await assignmentQueue.add(
       "generate-paper",
       {
@@ -480,7 +472,6 @@ export const regenerateAssignmentController = async (req: Request, res: Response
       });
     }
 
-    // 🔥 deduct credit
     dbUser.credits -= 1;
     await dbUser.save();
 
@@ -515,7 +506,66 @@ export const regenerateAssignmentController = async (req: Request, res: Response
 };
 
 // =========================
-// 🎯 GUEST CREDITS
+// 📄 GET ASSIGNMENT
+// =========================
+
+export const getAssignmentController = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid assignment ID",
+      });
+    }
+
+    const redis = await getRedisConnection();
+    const cacheKey = `assignment:${id}`;
+
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+
+      if (cached) {
+        return res.status(200).json({
+          success: true,
+          data: typeof cached === "string" ? JSON.parse(cached) : cached,
+          cached: true,
+        });
+      }
+    }
+
+    const assignment = await assignmentService.getAssignmentById(id);
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found",
+      });
+    }
+
+    if (redis) {
+      await redis.set(cacheKey, JSON.stringify(assignment), { ex: 300 });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: assignment,
+      cached: false,
+    });
+
+  } catch (error) {
+    console.error("Get Assignment Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// =========================
+// 💰 GUEST CREDITS
 // =========================
 
 export const getGuestCreditsController = async (req: Request, res: Response) => {
@@ -540,8 +590,3 @@ export const getGuestCreditsController = async (req: Request, res: Response) => 
     });
   }
 };
-
-
-
-
-
