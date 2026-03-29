@@ -568,8 +568,35 @@ export const getAssignmentController = async (req: Request, res: Response) => {
 // 💰 GUEST CREDITS
 // =========================
 
+// export const getGuestCreditsController = async (req: Request, res: Response) => {
+//   try {
+//     const sessionId = getOrCreateGuestSession(req, res);
+
+//     const info = await getGuestCreditsInfo(sessionId);
+
+//     return res.status(200).json({
+//       success: true,
+//       credits: info.credits,
+//       ttl: info.ttl,
+//       isGuest: true,
+//     });
+
+//   } catch (error) {
+//     console.error("Guest credits error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to get guest credits",
+//     });
+//   }
+// };
+
+
 export const getGuestCreditsController = async (req: Request, res: Response) => {
   try {
+    // 🔥 FIX: disable caching
+    res.set("Cache-Control", "no-store");
+
     const sessionId = getOrCreateGuestSession(req, res);
 
     const info = await getGuestCreditsInfo(sessionId);
