@@ -12,7 +12,7 @@ import {authMiddleware} from "../../middleware/auth.middleware";
 const router = express.Router();
 
 
-router.post("/",authMiddleware,validate(createAssignmentSchema),createAssignmentController);
+router.post("/",validate(createAssignmentSchema),createAssignmentController);
 
 router.post("/:id/regenerate",authMiddleware,regenerateAssignmentController);
 
