@@ -86,8 +86,8 @@ const QUESTION_TYPES = [
 export default function CreateAssignmentPage() {
   const router = useRouter();
   const { user, updateCredits } = useUserStore();
-  // const { isAuthenticated, token } = useAuth();
-  const { isAuthenticated, token, isLoading } = useAuth(); // adding this NEW
+  const { isAuthenticated, token } = useAuth();
+  // const { isAuthenticated, token, isLoading } = useAuth(); // adding this NEW
    
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -124,12 +124,12 @@ export default function CreateAssignmentPage() {
   }, []);
 
 
-  // adding this --- NEW 
-  useEffect(() => {
-  if (!isLoading && !isAuthenticated) {
-    router.replace("/login");
-  }
-}, [isAuthenticated, isLoading]);
+//   // adding this --- NEW 
+//   useEffect(() => {
+//   if (!isLoading && !isAuthenticated) {
+//     router.replace("/login");
+//   }
+// }, [isAuthenticated, isLoading]);
 
   //  SECURE: Fetch guest credits from backend only (no localStorage caching)
   useEffect(() => {
@@ -330,13 +330,13 @@ export default function CreateAssignmentPage() {
 
   // adding this also 
   
-  if (isLoading) {
-  return <div>Loading...</div>;
-}
+//   if (isLoading) {
+//   return <div>Loading...</div>;
+// }
 
-if (!isAuthenticated) {
-  return null;
-}
+// if (!isAuthenticated) {
+//   return null;
+// }
 
   return (
     <div className="relative min-h-screen bg-[#fdfaf5] overflow-x-hidden">
