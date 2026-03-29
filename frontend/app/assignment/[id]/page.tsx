@@ -407,9 +407,9 @@ export default function AssignmentPage() {
             </div>
           </div>
         )}
-        
+
         {q.hint && (
-          <p className="text-xs text-gray-500 mt-0.5 ml-5">
+          <p className="text-xs text-gray-500 mt-0.5 ml-5 hidden">
             Hint: {q.hint}
           </p>
         )}
