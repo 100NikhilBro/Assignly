@@ -595,8 +595,14 @@ export const getAssignmentController = async (req: Request, res: Response) => {
 export const getGuestCreditsController = async (req: Request, res: Response) => {
   try {
     // 🔥 FIX: disable caching
-    res.set("Cache-Control", "no-store");
+     res.set({
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Pragma": "no-cache",
+      "Expires": "0",
+      "Surrogate-Control": "no-store"
+    });
 
+   
     const sessionId = getOrCreateGuestSession(req, res);
 
     const info = await getGuestCreditsInfo(sessionId);
