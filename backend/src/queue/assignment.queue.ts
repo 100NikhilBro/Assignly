@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 
 const connection = {
-  host: "ruling-griffon-79931.upstash.io",
+  host: "daring-amoeba-80260.upstash.io",
   port: 6379,
   username: "default",
   password: process.env.REDIS_PASSWORD,
