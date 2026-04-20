@@ -65,7 +65,7 @@ export default function HeroSection({ onStart }: HeroSectionProps) {
 
             {/* Secondary CTA */}
             <motion.a
-              href="https://github.com/100NikhilBro/vedaai-intelligent-assessment"
+              href="https://github.com/100NikhilBro/Assignly"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
