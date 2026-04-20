@@ -65,7 +65,7 @@ export default function Footer() {
               Connect
             </h4>
             <a
-              href="https://github.com/100NikhilBro/vedaai-intelligent-assessment"
+              href="https://github.com/100NikhilBro/Assignly"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-gray-600 hover:text-amber-700 transition text-sm"
